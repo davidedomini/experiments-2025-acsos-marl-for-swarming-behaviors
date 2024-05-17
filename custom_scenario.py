@@ -20,7 +20,7 @@ class CustomScenario(BaseScenario):
             collide=True,
             color=Color.GREEN,
             render_action=True,
-            action_script=self.action_script_creator(),
+            #action_script=self.action_script_creator(),
         )
         world.add_agent(agent1)
        

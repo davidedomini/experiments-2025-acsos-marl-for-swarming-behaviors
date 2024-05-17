@@ -56,7 +56,7 @@ def use_vmas_env(
     # (by default they are lists of len # of agents)
 
     env = make_env(
-        scenario=scenario_name,
+        CustomScenario(),
         num_envs=num_envs,
         device=device,
         continuous_actions=continuous_actions,
