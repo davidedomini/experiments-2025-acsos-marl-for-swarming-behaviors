@@ -16,6 +16,7 @@ from ray.rllib.utils.typing import PolicyID
 from ray.tune import register_env
 from vmas import make_env, Wrapper
 from custom_scenario import CustomScenario
+from test_custom_scenario import use_vmas_env
 
 scenario_name = "custom_environment"
 
@@ -105,7 +106,7 @@ register_env(scenario_name, lambda config: env_creator(config))
 
 
 def train():
-    res = tune.run(
+    """ res = tune.run(
         PPOTrainer,
         stop={"training_iteration": 2},
         checkpoint_freq=1,
@@ -117,13 +118,22 @@ def train():
         config=config,
         metric="episode_reward_mean",  # Specifica la metrica
         mode="max"  # Specifica la modalità di ottimizzazione
-    )
+    ) """
 
     trainer = PPOTrainer(config=config)
-    trainer.restore(res.best_checkpoint)
+    trainer.restore("/home/filippo/ray_results/PPO_2024-05-20_20-54-47/PPO_custom_environment_6da53_00000_0_2024-05-20_20-54-47/checkpoint_000002")
 
-    print("FATTO")
+    return trainer
 
 
 if __name__ == "__main__":
-    train()
+    trainer = train()
+    use_vmas_env(
+        scenario_name="custom_scenario",
+        render=True,
+        save_render=False,
+        random_action=False,
+        continuous_actions=False,
+        trainer=trainer
+    )
+    

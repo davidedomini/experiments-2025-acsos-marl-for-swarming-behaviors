@@ -7,6 +7,8 @@ from vmas import make_env
 from vmas.simulator.core import Agent
 from vmas.simulator.utils import save_video
 from custom_scenario import CustomScenario
+from ray.rllib.agents.ppo import PPOTrainer
+import numpy as np
 
 
 def _get_deterministic_action(agent: Agent, continuous: bool, env):
@@ -24,14 +26,15 @@ def _get_deterministic_action(agent: Agent, continuous: bool, env):
 def use_vmas_env(
     render: bool = False,
     save_render: bool = False,
-    num_envs: int = 32,
-    n_steps: int = 100,
+    num_envs: int = 96,
+    n_steps: int = 200,
     random_action: bool = False,
     device: str = "cpu",
-    scenario_name: str = "waterfall",
-    n_agents: int = 4,
+    scenario_name: str = "custom_scenario",
+    n_agents: int = 1,
     continuous_actions: bool = True,
     visualize_render: bool = True,
+    trainer: PPOTrainer = None,
 ):
     """Example function to use a vmas environment
 
@@ -52,7 +55,7 @@ def use_vmas_env(
     """
     assert not (save_render and not render), "To save the video you have to render it"
 
-    dict_spaces = True  # Weather to return obs, rewards, and infos as dictionaries with agent names
+    dict_spaces = False  # Weather to return obs, rewards, and infos as dictionaries with agent names
     # (by default they are lists of len # of agents)
 
     env = make_env(
@@ -71,6 +74,11 @@ def use_vmas_env(
     init_time = time.time()
     step = 0
 
+    obs_list = env.reset()
+    obs = obs_list
+
+    print(obs)
+
     for _ in range(n_steps):
         step += 1
         print(f"Step {step}")
@@ -82,16 +90,17 @@ def use_vmas_env(
 
         actions = {} if dict_actions else []
         for agent in env.agents:
-            if not random_action:
-                action = _get_deterministic_action(agent, continuous_actions, env)
+            if not random_action and trainer is not None:
+                action = trainer.compute_single_action(observation=obs)
             else:
-                action = env.get_random_action(agent)
+                action = _get_deterministic_action(agent, continuous_actions, env)
             if dict_actions:
                 actions.update({agent.name: action})
             else:
                 actions.append(action)
 
         obs, rews, dones, info = env.step(actions)
+        obs = obs
 
         if render:
             frame = env.render(
@@ -114,7 +123,7 @@ def use_vmas_env(
 
 if __name__ == "__main__":
     use_vmas_env(
-        scenario_name="waterfall",
+        scenario_name="custom_scenario",
         render=True,
         save_render=False,
         random_action=False,
