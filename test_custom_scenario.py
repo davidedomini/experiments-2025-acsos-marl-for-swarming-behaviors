@@ -37,6 +37,7 @@ def use_vmas_env(
 
     env = make_env(
         CustomScenario(),
+        scenario_name = env_config["scenario_name"],
         num_envs=env_config["num_envs"],
         device=env_config["device"],
         continuous_actions=env_config["continuous_actions"],
@@ -91,7 +92,7 @@ def use_vmas_env(
     total_time = time.time() - init_time
     print(
         f"It took: {total_time}s for {n_steps} steps of {env.num_envs} parallel environments on device {env.device} "
-        f"for {scenario_name} scenario."
+        f"for {env_config['scenario_name']} scenario."
     )
 
     if render and save_render:
@@ -100,7 +101,6 @@ def use_vmas_env(
 
 if __name__ == "__main__":
     use_vmas_env(
-        scenario_name="custom_scenario",
         render=True,
         save_render=False,
         random_action=False,

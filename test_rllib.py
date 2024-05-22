@@ -97,9 +97,7 @@ def env_creator(config: Dict):
         # Scenario specific variables
         **config["scenario_config"],
     )
-    print(env)
     return env
-
 
 if not ray.is_initialized():
     ray.init()
@@ -109,7 +107,7 @@ register_env(scenario_name, lambda config: env_creator(config))
 
 
 def train():
-    """ res = tune.run(
+    res = tune.run(
         PPOTrainer,
         stop={"training_iteration": 2},
         checkpoint_freq=1,
@@ -121,11 +119,11 @@ def train():
         config=config,
         metric="episode_reward_mean",  # Specifica la metrica
         mode="max"  # Specifica la modalità di ottimizzazione
-    ) """
+    )
 
     trainer = PPOTrainer(config=config)
-    #trainer.restore(res.best_checkpoint)
-    trainer.restore("/home/filippo/ray_results/PPO_2024-05-22_15-30-22/PPO_custom_environment_708a0_00000_0_2024-05-22_15-30-22/checkpoint_000002")
+    trainer.restore(res.best_checkpoint)
+    #trainer.restore("/home/filippo/ray_results/PPO_2024-05-22_15-30-22/PPO_custom_environment_708a0_00000_0_2024-05-22_15-30-22/checkpoint_000002")
 
     return trainer
 
@@ -133,7 +131,6 @@ def train():
 if __name__ == "__main__":
     trainer = train()
     
-    print(config["env_config"])
     use_vmas_env(
         scenario_name="custom_scenario",
         render=True,
