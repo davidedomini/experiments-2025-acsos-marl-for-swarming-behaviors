@@ -27,7 +27,7 @@ n_agents = 1
 # Common variables
 continuous_actions = False
 max_steps = 200
-num_vectorized_envs = 1
+num_vectorized_envs = 96
 num_workers = 5
 vmas_device = "cpu"  # or cuda
 env = None
@@ -109,7 +109,7 @@ register_env(scenario_name, lambda config: env_creator(config))
 def train():
     """ res = tune.run(
         PPOTrainer,
-        stop={"training_iteration": 2},
+        stop={"training_iteration": 10},
         checkpoint_freq=1,
         keep_checkpoints_num=2,
         checkpoint_at_end=True,
@@ -123,7 +123,7 @@ def train():
 
     trainer = PPOTrainer(config=config)
     #trainer.restore(res.best_checkpoint)
-    trainer.restore("/home/filippo/ray_results/PPO_2024-05-22_16-26-33/PPO_test_rllib_scenario_49edb_00000_0_2024-05-22_16-26-33/checkpoint_000002")
+    trainer.restore("/home/filippo/ray_results/PPO_2024-05-22_16-45-50/PPO_test_rllib_scenario_fb857_00000_0_2024-05-22_16-45-50/checkpoint_000008")
 
     return trainer
 

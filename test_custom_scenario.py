@@ -20,6 +20,7 @@ def _get_deterministic_action(agent: Agent, continuous: bool, env):
             .unsqueeze(-1)
             .expand(env.batch_dim, 1)
         )
+        print(action)
     return action.clone()
 
 
@@ -57,21 +58,21 @@ def use_vmas_env(
     """ print(obs_tensor[0])
     obs = np.empty(obs_tensor.size)
     obs = np.array(obs_tensor) """
-    obs = obs_list[0].numpy()
+    #obs = obs_list[0].numpy() #Primo agente
 
-    print(obs)
+    #obs = [action.numpy() for action in obs_list[0]]
+
+    obs = (obs_list[0][0].numpy().astype(np.float32),)
 
     for _ in range(n_steps):
         step += 1
         print(f"Step {step}")
 
-        # VMAS actions can be either a list of tensors (one per agent)
-        # or a dict of tensors (one entry per agent with its name as key)
-        # Both action inputs can be used independently of what type of space its chosen
         dict_actions = random.choice([True, False])
 
         actions = {} if dict_actions else []
         for agent in env.agents:
+            
             if not random_action and trainer is not None:
                 action = trainer.compute_single_action(observation=obs)
             else:
@@ -82,7 +83,7 @@ def use_vmas_env(
                 actions.append(action)
 
         obs_list, rews, dones, info = env.step(actions)
-        obs = obs_list[0].numpy()
+        obs = obs_list[0][0].numpy()
 
         if render:
             frame = env.render(
