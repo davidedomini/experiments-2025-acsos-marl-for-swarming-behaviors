@@ -78,9 +78,9 @@ config = {
             "evaluation_num_workers": 1,
             "evaluation_parallel_to_training": True,
             "evaluation_config": {
-                "num_envs_per_worker": 1,
+                "num_envs_per_worker": num_vectorized_envs,
                 "env_config": {
-                    "num_envs": 1,
+                    "num_envs": num_vectorized_envs,
                 }
             }
         }
@@ -107,7 +107,7 @@ register_env(scenario_name, lambda config: env_creator(config))
 
 
 def train():
-    """ res = tune.run(
+    res = tune.run(
         PPOTrainer,
         stop={"training_iteration": 10},
         checkpoint_freq=1,
@@ -119,11 +119,11 @@ def train():
         config=config,
         metric="episode_reward_mean",  # Specifica la metrica
         mode="max"  # Specifica la modalità di ottimizzazione
-    ) """
+    )
 
     trainer = PPOTrainer(config=config)
-    #trainer.restore(res.best_checkpoint)
-    trainer.restore("/home/filippo/ray_results/PPO_2024-05-22_16-45-50/PPO_test_rllib_scenario_fb857_00000_0_2024-05-22_16-45-50/checkpoint_000008")
+    trainer.restore(res.best_checkpoint)
+    #trainer.restore("/home/filippo/ray_results/PPO_2024-05-22_16-45-50/PPO_test_rllib_scenario_fb857_00000_0_2024-05-22_16-45-50/checkpoint_000008")
 
     return trainer
 

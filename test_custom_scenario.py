@@ -75,6 +75,7 @@ def use_vmas_env(
             
             if not random_action and trainer is not None:
                 action = trainer.compute_single_action(observation=obs)
+                print(action)
             else:
                 action = _get_deterministic_action(agent, env.continuous_actions, env)
             if dict_actions:
