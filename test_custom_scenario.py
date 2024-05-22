@@ -9,7 +9,7 @@ from vmas.simulator.utils import save_video
 from custom_scenario import CustomScenario
 from ray.rllib.agents.ppo import PPOTrainer
 import numpy as np
-
+from vmas.simulator.environment.rllib import VectorEnvWrapper
 
 def _get_deterministic_action(agent: Agent, continuous: bool, env):
     if continuous:
@@ -26,48 +26,25 @@ def _get_deterministic_action(agent: Agent, continuous: bool, env):
 def use_vmas_env(
     render: bool = False,
     save_render: bool = False,
-    num_envs: int = 96,
     n_steps: int = 200,
     random_action: bool = False,
-    device: str = "cpu",
     scenario_name: str = "custom_scenario",
-    n_agents: int = 1,
-    continuous_actions: bool = True,
     visualize_render: bool = True,
     trainer: PPOTrainer = None,
+    env_config: dict = None,
 ):
-    """Example function to use a vmas environment
-
-    Args:
-        continuous_actions (bool): Whether the agents have continuous or discrete actions
-        n_agents (int): Number of agents
-        scenario_name (str): Name of scenario
-        device (str): Torch device to use
-        render (bool): Whether to render the scenario
-        save_render (bool):  Whether to save render of the scenario
-        num_envs (int): Number of vectorized environments
-        n_steps (int): Number of steps before returning done
-        random_action (bool): Use random actions or have all agents perform the down action
-        visualize_render (bool, optional): Whether to visualize the render. Defaults to ``True``.
-
-    Returns:
-
-    """
     assert not (save_render and not render), "To save the video you have to render it"
-
-    dict_spaces = False  # Weather to return obs, rewards, and infos as dictionaries with agent names
-    # (by default they are lists of len # of agents)
 
     env = make_env(
         CustomScenario(),
-        num_envs=num_envs,
-        device=device,
-        continuous_actions=continuous_actions,
-        dict_spaces=dict_spaces,
+        num_envs=env_config["num_envs"],
+        device=env_config["device"],
+        continuous_actions=env_config["continuous_actions"],
+        dict_spaces=False,
         wrapper=None,
         seed=None,
         # Environment specific variables
-        n_agents=n_agents,
+        n_agents=env_config["scenario_config"]["n_agents"],
     )
 
     frame_list = []  # For creating a gif
@@ -93,7 +70,7 @@ def use_vmas_env(
             if not random_action and trainer is not None:
                 action = trainer.compute_single_action(observation=obs)
             else:
-                action = _get_deterministic_action(agent, continuous_actions, env)
+                action = _get_deterministic_action(agent, env.continuous_actions, env)
             if dict_actions:
                 actions.update({agent.name: action})
             else:
@@ -113,7 +90,7 @@ def use_vmas_env(
 
     total_time = time.time() - init_time
     print(
-        f"It took: {total_time}s for {n_steps} steps of {num_envs} parallel environments on device {device} "
+        f"It took: {total_time}s for {n_steps} steps of {env.num_envs} parallel environments on device {env.device} "
         f"for {scenario_name} scenario."
     )
 
@@ -127,5 +104,15 @@ if __name__ == "__main__":
         render=True,
         save_render=False,
         random_action=False,
-        continuous_actions=False,
+        env_config={
+                "device": "cpu",
+                "num_envs": 32,
+                "scenario_name": "try_custom_scenario",
+                "continuous_actions": False,
+                "max_steps": 200,
+                # Scenario specific variables
+                "scenario_config": {
+                    "n_agents": 1,
+                },
+            }
     )
