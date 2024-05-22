@@ -18,7 +18,7 @@ from vmas import make_env, Wrapper
 from custom_scenario import CustomScenario
 from test_custom_scenario import use_vmas_env
 
-scenario_name = "custom_environment"
+scenario_name = "test_rllib_scenario"
 
 # Scenario specific variables.
 # When modifying this also modify env_config and env_creator
@@ -107,7 +107,7 @@ register_env(scenario_name, lambda config: env_creator(config))
 
 
 def train():
-    res = tune.run(
+    """ res = tune.run(
         PPOTrainer,
         stop={"training_iteration": 2},
         checkpoint_freq=1,
@@ -119,11 +119,11 @@ def train():
         config=config,
         metric="episode_reward_mean",  # Specifica la metrica
         mode="max"  # Specifica la modalità di ottimizzazione
-    )
+    ) """
 
     trainer = PPOTrainer(config=config)
-    trainer.restore(res.best_checkpoint)
-    #trainer.restore("/home/filippo/ray_results/PPO_2024-05-22_15-30-22/PPO_custom_environment_708a0_00000_0_2024-05-22_15-30-22/checkpoint_000002")
+    #trainer.restore(res.best_checkpoint)
+    trainer.restore("/home/filippo/ray_results/PPO_2024-05-22_16-26-33/PPO_test_rllib_scenario_49edb_00000_0_2024-05-22_16-26-33/checkpoint_000002")
 
     return trainer
 
@@ -132,11 +132,9 @@ if __name__ == "__main__":
     trainer = train()
     
     use_vmas_env(
-        scenario_name="custom_scenario",
         render=True,
         save_render=False,
         random_action=False,
-        continuous_actions=False,
         trainer=trainer,
         env_config = config["env_config"]
     )

@@ -52,8 +52,12 @@ def use_vmas_env(
     init_time = time.time()
     step = 0
 
+    
     obs_list = env.reset()
-    obs = obs_list
+    """ print(obs_tensor[0])
+    obs = np.empty(obs_tensor.size)
+    obs = np.array(obs_tensor) """
+    obs = obs_list[0].numpy()
 
     print(obs)
 
@@ -77,8 +81,8 @@ def use_vmas_env(
             else:
                 actions.append(action)
 
-        obs, rews, dones, info = env.step(actions)
-        obs = obs
+        obs_list, rews, dones, info = env.step(actions)
+        obs = obs_list[0].numpy()
 
         if render:
             frame = env.render(
