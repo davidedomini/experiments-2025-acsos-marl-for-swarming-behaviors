@@ -53,9 +53,6 @@ def use_vmas_env(
     step = 0
 
     obs_dict = env.reset() #Dictionary that contains all the agents observations
-
-    print(env.action_space["agent0"])
-    print(obs_dict)
     
     for _ in range(n_steps):
         step += 1
@@ -68,7 +65,7 @@ def use_vmas_env(
             obs = {
                 "obs": obs_dict[agent.name] #Observation of a single agent
             }
-            print(obs_dict)
+
             if not random_action and trainer is not None:
                 #action = trainer.compute_actions(observations=obs)
                 action, state_out, actions_info = trainer.get_policy().compute_actions_from_input_dict(input_dict=obs)
@@ -79,9 +76,10 @@ def use_vmas_env(
                 actions.update({agent.name: action})
             else:
                 actions.append(action)
-        #print(actions)
-        #actions = {'agent0': torch.tensor([[1]])}
+        print(obs_dict)
+        actions = {'agent0': torch.tensor([[1]]), 'agent1': torch.tensor([[2]])}
         obs_dict, rews, dones, info = env.step(actions)
+        print(obs_dict)
 
         if render:
             frame = env.render(
@@ -114,7 +112,7 @@ if __name__ == "__main__":
                 "continuous_actions": False,
                 "max_steps": 200,
                 "scenario_config": {
-                    "n_agents": 1,
+                    "n_agents": 2,
                 },
             }
     )

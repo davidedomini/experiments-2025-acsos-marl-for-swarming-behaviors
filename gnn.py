@@ -34,7 +34,7 @@ class GCN(torch.nn.Module):
 
 
 # Model dimensions configurations
-model = GCN(input_dim=4, hidden_dim=16, output_dim=1)
+model = GCN(input_dim=2, hidden_dim=16, output_dim=1)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 
@@ -65,63 +65,38 @@ def create_graph_from_observations(observations):
 
 # Supponiamo che il tuo modello sia chiamato 'model' e l'ottimizzatore 'optimizer'
 
-import torch
-import torch.nn.functional as F
-import torch.optim as optim
 
 # Supponiamo che il tuo modello sia chiamato 'model' e l'ottimizzatore 'optimizer'
 
-def train_step(graph_data, actions, rewards_tensor):
+def train_step(graph_data, actions, rewards):
+    model.train()
     optimizer.zero_grad()
-    
-    # Aggiungi una loss arbitraria per testare il backpropagation
-    test_loss = F.mse_loss(actions, torch.ones_like(actions))
-    
-    # Stampa la loss temporanea
-    #print(f'Temporary Test Loss: {test_loss.item()}')
-    
-    test_loss.backward()
-    
-    # Debug: Stampa dei gradienti dopo il backward
-    """ for name, param in model.named_parameters():
-        if param.grad is not None:
-            print(f'Gradient for {name}: {param.grad.norm()}') """
-    
+    out = model(graph_data)
+    loss = F.mse_loss(out, actions)  # Supponiamo di utilizzare MSE per il training
+    loss.backward()
     optimizer.step()
-    
-    return test_loss.item()
+    return loss.item()
+
+observations = env.reset()
 
 for episode in range(100):  # Numero di episodi di addestramento
-    observations = env.reset()
+    
     episode_loss = 0
 
     graph_data = create_graph_from_observations(observations)
     
     actions = model(graph_data)
 
-    # Debug: Stampa delle osservazioni
     print(f'Observations: {observations}')
 
-    # Debug: Stampa delle azioni
     print(f'Actions: {actions}')
 
-
-    # Debug: stampa delle azioni
-    #print(f'Episode {episode}, Actions: {actions}')
-
-    #actions_dict = {f'agent{i}': actions[i].detach().numpy() for i in range(len(env.agents))}
-    actions_dict = {'agent0': torch.tensor([[1]]), 'agent1': torch.tensor([[1]])}
+    actions_dict = {f'agent{i}': actions[i].detach().numpy() for i in range(len(env.agents))}
+    #actions_dict = {'agent0': torch.tensor([[1]]), 'agent1': torch.tensor([[2]])}
     observations, rewards, done, _ = env.step(actions_dict)
     
     rewards_tensor = torch.tensor([rewards[f'agent{i}'] for i in range(len(env.agents))], dtype=torch.float)
 
     loss = train_step(graph_data, actions, rewards_tensor)
     episode_loss += loss
-    
-    # Debug: stampa della loss
-    print(f'Episode {episode}, Loss: {episode_loss}')
-    
-    """ # Debug: verifica degli aggiornamenti del modello
-    with torch.no_grad():
-        for name, param in model.named_parameters():
-            print(f'Parameter {name} after update: {param.data}') """
+
