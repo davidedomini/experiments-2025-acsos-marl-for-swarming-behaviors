@@ -65,11 +65,10 @@ def use_vmas_env(
 
         actions = {} if dict_actions else []
         for agent in env.agents:
-            
             obs = {
                 "obs": obs_dict[agent.name] #Observation of a single agent
             }
-
+            print(obs_dict)
             if not random_action and trainer is not None:
                 #action = trainer.compute_actions(observations=obs)
                 action, state_out, actions_info = trainer.get_policy().compute_actions_from_input_dict(input_dict=obs)
@@ -80,7 +79,8 @@ def use_vmas_env(
                 actions.update({agent.name: action})
             else:
                 actions.append(action)
-
+        #print(actions)
+        #actions = {'agent0': torch.tensor([[1]])}
         obs_dict, rews, dones, info = env.step(actions)
 
         if render:
@@ -114,7 +114,7 @@ if __name__ == "__main__":
                 "continuous_actions": False,
                 "max_steps": 200,
                 "scenario_config": {
-                    "n_agents": 2,
+                    "n_agents": 1,
                 },
             }
     )
