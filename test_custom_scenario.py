@@ -53,6 +53,9 @@ def use_vmas_env(
     step = 0
 
     obs_dict = env.reset() #Dictionary that contains all the agents observations
+
+    print(env.action_space["agent0"])
+    print(obs_dict)
     
     for _ in range(n_steps):
         step += 1
@@ -106,13 +109,12 @@ if __name__ == "__main__":
         random_action=False,
         env_config={
                 "device": "cpu",
-                "num_envs": 32,
+                "num_envs": 1,
                 "scenario_name": "try_custom_scenario",
                 "continuous_actions": False,
                 "max_steps": 200,
-                # Scenario specific variables
                 "scenario_config": {
-                    "n_agents": 100,
+                    "n_agents": 2,
                 },
             }
     )

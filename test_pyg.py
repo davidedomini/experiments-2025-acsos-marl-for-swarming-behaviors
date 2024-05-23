@@ -22,6 +22,8 @@ class GCN(torch.nn.Module):
 model = GCN()
 data = dataset[0]
 
+print(data)
+
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
 
 model.train()

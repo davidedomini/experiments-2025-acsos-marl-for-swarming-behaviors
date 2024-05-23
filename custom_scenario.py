@@ -37,7 +37,6 @@ class CustomScenario(BaseScenario):
                 color=Color.GREEN,
                 render_action=True,
             )
-
             agent.pos_rew = torch.zeros(batch_dim, device=device)
             agent.goal = goal
             world.add_agent(agent)
