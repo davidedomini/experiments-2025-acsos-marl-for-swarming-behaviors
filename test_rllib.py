@@ -27,7 +27,7 @@ n_agents = 1
 # Common variables
 continuous_actions = False
 max_steps = 200
-num_vectorized_envs = 96
+num_vectorized_envs = 3
 num_workers = 5
 vmas_device = "cpu"  # or cuda
 env = None
@@ -57,6 +57,7 @@ config = {
             "num_workers": num_workers,
             "num_gpus_per_worker": num_gpus_per_worker,
             "num_envs_per_worker": num_vectorized_envs,
+            "ignore_worker_failures": True,
             "lr": 5e-5,
             "gamma": 0.99,
             "use_gae": True,
@@ -94,6 +95,7 @@ def env_creator(config: Dict):
         continuous_actions=config["continuous_actions"],
         wrapper=Wrapper.RLLIB,
         max_steps=config["max_steps"],
+        dict_spaces=False,
         # Scenario specific variables
         **config["scenario_config"],
     )
@@ -107,7 +109,7 @@ register_env(scenario_name, lambda config: env_creator(config))
 
 
 def train():
-    res = tune.run(
+    """ res = tune.run(
         PPOTrainer,
         stop={"training_iteration": 10},
         checkpoint_freq=1,
@@ -119,11 +121,12 @@ def train():
         config=config,
         metric="episode_reward_mean",  # Specifica la metrica
         mode="max"  # Specifica la modalità di ottimizzazione
-    )
+    ) """
 
     trainer = PPOTrainer(config=config)
-    trainer.restore(res.best_checkpoint)
-    #trainer.restore("/home/filippo/ray_results/PPO_2024-05-22_16-45-50/PPO_test_rllib_scenario_fb857_00000_0_2024-05-22_16-45-50/checkpoint_000008")
+    #trainer.restore(res.best_checkpoint)
+    #BEST 96 BATCH: "/home/filippo/ray_results/PPO_2024-05-22_16-45-50/PPO_test_rllib_scenario_fb857_00000_0_2024-05-22_16-45-50/checkpoint_000008"
+    trainer.restore("/home/filippo/ray_results/PPO_2024-05-23_09-31-16/PPO_test_rllib_scenario_70af1_00000_0_2024-05-23_09-31-16/checkpoint_000010")
 
     return trainer
 

@@ -42,7 +42,7 @@ def use_vmas_env(
         num_envs=env_config["num_envs"],
         device=env_config["device"],
         continuous_actions=env_config["continuous_actions"],
-        dict_spaces=False,
+        dict_spaces=True,
         wrapper=None,
         seed=None,
         # Environment specific variables
@@ -54,15 +54,10 @@ def use_vmas_env(
     step = 0
 
     
-    obs_list = env.reset()
-    """ print(obs_tensor[0])
-    obs = np.empty(obs_tensor.size)
-    obs = np.array(obs_tensor) """
-    #obs = obs_list[0].numpy() #Primo agente
-
-    #obs = [action.numpy() for action in obs_list[0]]
-
-    obs = (obs_list[0][0].numpy().astype(np.float32),)
+    obs = env.reset()    
+    obs = {
+        "obs": obs["agent"]
+    }
 
     for _ in range(n_steps):
         step += 1
@@ -74,8 +69,9 @@ def use_vmas_env(
         for agent in env.agents:
             
             if not random_action and trainer is not None:
-                action = trainer.compute_single_action(observation=obs)
-                print(action)
+                #action = trainer.compute_actions(observations=obs)
+                action, state_out, actions_info = trainer.get_policy().compute_actions_from_input_dict(input_dict=obs)
+                action = action[0].reshape(-1, 1) #Get colums vector from row vector
             else:
                 action = _get_deterministic_action(agent, env.continuous_actions, env)
             if dict_actions:
@@ -83,8 +79,10 @@ def use_vmas_env(
             else:
                 actions.append(action)
 
-        obs_list, rews, dones, info = env.step(actions)
-        obs = obs_list[0][0].numpy()
+        obs, rews, dones, info = env.step(actions)
+        obs = {
+            "obs": obs["agent"]
+        }
 
         if render:
             frame = env.render(
