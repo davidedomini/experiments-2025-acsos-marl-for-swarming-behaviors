@@ -20,7 +20,6 @@ def _get_deterministic_action(agent: Agent, continuous: bool, env):
             .unsqueeze(-1)
             .expand(env.batch_dim, 1)
         )
-        print(action)
     return action.clone()
 
 
@@ -53,12 +52,8 @@ def use_vmas_env(
     init_time = time.time()
     step = 0
 
+    obs_dict = env.reset() #Dictionary that contains all the agents observations
     
-    obs = env.reset()    
-    obs = {
-        "obs": obs["agent"]
-    }
-
     for _ in range(n_steps):
         step += 1
         print(f"Step {step}")
@@ -68,6 +63,10 @@ def use_vmas_env(
         actions = {} if dict_actions else []
         for agent in env.agents:
             
+            obs = {
+                "obs": obs_dict[agent.name] #Observation of a single agent
+            }
+
             if not random_action and trainer is not None:
                 #action = trainer.compute_actions(observations=obs)
                 action, state_out, actions_info = trainer.get_policy().compute_actions_from_input_dict(input_dict=obs)
@@ -79,10 +78,7 @@ def use_vmas_env(
             else:
                 actions.append(action)
 
-        obs, rews, dones, info = env.step(actions)
-        obs = {
-            "obs": obs["agent"]
-        }
+        obs_dict, rews, dones, info = env.step(actions)
 
         if render:
             frame = env.render(
@@ -116,7 +112,7 @@ if __name__ == "__main__":
                 "max_steps": 200,
                 # Scenario specific variables
                 "scenario_config": {
-                    "n_agents": 1,
+                    "n_agents": 100,
                 },
             }
     )

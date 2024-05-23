@@ -13,28 +13,13 @@ class CustomScenario(BaseScenario):
     def make_world(self, batch_dim: int, device: torch.device, **kwargs):    
         self.pos_shaping_factor = kwargs.get("pos_shaping_factor", 1)
         self.agent_radius = kwargs.get("agent_radius", 0.1)
+        self.n_agents = kwargs.get("n_agents", 1)
 
         self.min_distance_between_entities = self.agent_radius * 2 + 0.05
         self.world_semidim = 1
 
         # Make world
         world = World(batch_dim, device)
-        
-        # Add agents
-        agent = Agent(
-            name="agent",
-            collide=True,
-            color=Color.GREEN,
-            render_action=True,
-            #action_script=self.action_script_creator(),
-        )
-
-        agent.pos_rew = torch.zeros(batch_dim, device=device)
-
-        self.pos_rew = torch.zeros(batch_dim, device=device)
-        self.final_rew = self.pos_rew.clone()
-
-        world.add_agent(agent)
 
         # Add goals
         goal = Landmark(
@@ -43,43 +28,46 @@ class CustomScenario(BaseScenario):
             color=Color.BLACK,
         )
         world.add_landmark(goal)
-        agent.goal = goal
+
+        for i in range(self.n_agents):
+            # Add agents
+            agent = Agent(
+                name=f"agent{i}",
+                collide=True,
+                color=Color.GREEN,
+                render_action=True,
+            )
+
+            agent.pos_rew = torch.zeros(batch_dim, device=device)
+            agent.goal = goal
+            world.add_agent(agent)
+
+        self.pos_rew = torch.zeros(batch_dim, device=device)
+        self.final_rew = self.pos_rew.clone()
 
         return world
 
     def reset_world_at(self, env_index: int = None):
-        ScenarioUtils.spawn_entities_randomly(
-            self.world.agents,
-            self.world,
-            env_index,
-            self.min_distance_between_entities,
-            (-self.world_semidim, self.world_semidim),
-            (-self.world_semidim, self.world_semidim),
+        center_pos = torch.zeros(
+            (1, 2) if env_index is not None else (self.world.batch_dim, 2),
+            device=self.world.device,
+            dtype=torch.float32,
         )
 
-        occupied_positions = torch.stack(
-            [agent.state.pos for agent in self.world.agents], dim=1
-        )
-        if env_index is not None:
-            occupied_positions = occupied_positions[env_index].unsqueeze(0)
+        num_agents = len(self.world.agents)
 
-        goal_poses = []
-        for _ in self.world.agents:
-            position = ScenarioUtils.find_random_pos_for_entity(
-                occupied_positions=occupied_positions,
-                env_index=env_index,
-                world=self.world,
-                min_dist_between_entities=self.min_distance_between_entities,
-                x_bounds=(-self.world_semidim, self.world_semidim),
-                y_bounds=(-self.world_semidim, self.world_semidim),
-            )
-            goal_poses.append(position.squeeze(1))
-            occupied_positions = torch.cat([occupied_positions, position], dim=1)
+        perturbation_scale = 0.1  
 
-        # Set the agent's position at the center
+        perturbations = (torch.rand((num_agents, 2), device=self.world.device, dtype=torch.float32) - 0.5) * perturbation_scale
+
+        # Set the agents' positions near the center
         for i, agent in enumerate(self.world.agents):
-            agent.goal.set_pos(goal_poses[i], batch_index=env_index)
-
+            
+            perturbed_pos = center_pos + perturbations[i]
+            agent.set_pos(
+                perturbed_pos,
+                batch_index=env_index,
+            )
             if env_index is None:
                 agent.pos_shaping = (
                     torch.linalg.vector_norm(

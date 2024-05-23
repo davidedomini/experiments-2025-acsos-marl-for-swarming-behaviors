@@ -27,8 +27,8 @@ n_agents = 1
 # Common variables
 continuous_actions = False
 max_steps = 200
-num_vectorized_envs = 3
-num_workers = 5
+num_vectorized_envs = 64
+num_workers = 8
 vmas_device = "cpu"  # or cuda
 env = None
 
@@ -109,7 +109,7 @@ register_env(scenario_name, lambda config: env_creator(config))
 
 
 def train():
-    """ res = tune.run(
+    res = tune.run(
         PPOTrainer,
         stop={"training_iteration": 10},
         checkpoint_freq=1,
@@ -121,12 +121,16 @@ def train():
         config=config,
         metric="episode_reward_mean",  # Specifica la metrica
         mode="max"  # Specifica la modalità di ottimizzazione
-    ) """
+    )
 
     trainer = PPOTrainer(config=config)
-    #trainer.restore(res.best_checkpoint)
-    #BEST 96 BATCH: "/home/filippo/ray_results/PPO_2024-05-22_16-45-50/PPO_test_rllib_scenario_fb857_00000_0_2024-05-22_16-45-50/checkpoint_000008"
-    trainer.restore("/home/filippo/ray_results/PPO_2024-05-23_09-31-16/PPO_test_rllib_scenario_70af1_00000_0_2024-05-23_09-31-16/checkpoint_000010")
+    trainer.restore(res.best_checkpoint)
+
+    #BEST 96 BATCH 10 iter: "/home/filippo/ray_results/PPO_2024-05-22_16-45-50/PPO_test_rllib_scenario_fb857_00000_0_2024-05-22_16-45-50/checkpoint_000008"
+    #BEST 3 BATCH 10 iter: "/home/filippo/ray_results/PPO_2024-05-23_09-31-16/PPO_test_rllib_scenario_70af1_00000_0_2024-05-23_09-31-16/checkpoint_000010"
+    #BEST 64 BATCH 20 iter: /home/filippo/ray_results/PPO_2024-05-23_10-03-40/PPO_test_rllib_scenario_f7b13_00000_0_2024-05-23_10-03-41/checkpoint_000019
+    
+    #trainer.restore("/home/filippo/ray_results/PPO_2024-05-23_10-03-40/PPO_test_rllib_scenario_f7b13_00000_0_2024-05-23_10-03-41/checkpoint_000019")
 
     return trainer
 
