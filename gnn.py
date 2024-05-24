@@ -5,7 +5,6 @@ from vmas import make_env, Wrapper
 from custom_scenario import CustomScenario
 from torch_geometric.data import Data
 
-
 env = make_env(
         scenario=CustomScenario(),
         num_envs=1,
@@ -94,3 +93,7 @@ for episode in range(10):  # Numero di episodi di addestramento
     print(f'Episode {episode}, Loss: {average_loss}')
 
 print("Training completed!")
+
+# Salva il modello addestrato
+torch.save(model.state_dict(), 'gcn_model.pth')
+print("Model saved successfully!")

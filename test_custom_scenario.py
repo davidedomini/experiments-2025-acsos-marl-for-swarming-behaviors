@@ -110,7 +110,7 @@ if __name__ == "__main__":
                 "num_envs": 1,
                 "scenario_name": "try_custom_scenario",
                 "continuous_actions": False,
-                "max_steps": 200,
+                "max_steps": 100,
                 "scenario_config": {
                     "n_agents": 2,
                 },
