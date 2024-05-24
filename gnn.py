@@ -31,7 +31,7 @@ class GCN(torch.nn.Module):
 
 # Modello con output dimensione pari al numero di azioni possibili
 num_actions = 9  
-model = GCN(input_dim=2, hidden_dim=16, output_dim=num_actions)
+model = GCN(input_dim=4, hidden_dim=16, output_dim=num_actions)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 
@@ -67,7 +67,7 @@ def train_step(graph_data, actions, rewards):
     optimizer.step()
     return loss.item()
 
-for episode in range(10):  # Numero di episodi di addestramento
+for episode in range(100):  # Numero di episodi di addestramento
     observations = env.reset()  # Reset dell'ambiente all'inizio di ogni episodio
     episode_loss = 0
     
@@ -92,7 +92,7 @@ for episode in range(10):  # Numero di episodi di addestramento
     average_loss = episode_loss / 100
     print(f'Episode {episode}, Loss: {average_loss}')
 
-print("Training completed!")
+print("Training completed with {tot}")
 
 # Salva il modello addestrato
 torch.save(model.state_dict(), 'gcn_model.pth')

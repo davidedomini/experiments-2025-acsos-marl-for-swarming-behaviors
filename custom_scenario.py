@@ -102,7 +102,8 @@ class CustomScenario(BaseScenario):
         # Return the agent's position and velocity
         return torch.cat(
             [
-                agent.state.pos
+                agent.state.pos,
+                agent.state.vel,
             ],
             dim=-1,
         )
