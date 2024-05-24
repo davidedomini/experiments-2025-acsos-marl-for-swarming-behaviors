@@ -77,7 +77,7 @@ def use_vmas_env(
             else:
                 actions.append(action)
         print(obs_dict)
-        actions = {'agent0': torch.tensor([[1]]), 'agent1': torch.tensor([[2]])}
+        actions = {'agent0': torch.tensor([[1]]), 'agent1': torch.tensor([[8]])}
         obs_dict, rews, dones, info = env.step(actions)
         print(obs_dict)
 
