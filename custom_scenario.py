@@ -47,26 +47,36 @@ class CustomScenario(BaseScenario):
         return world
 
     def reset_world_at(self, env_index: int = None):
-        center_pos = torch.zeros(
-            (1, 2) if env_index is not None else (self.world.batch_dim, 2),
-            device=self.world.device,
-            dtype=torch.float32,
-        )
-
+        # Definisci i limiti dell'area in cui posizionare gli agenti
+        position_range = (-1, 1)
+        
         num_agents = len(self.world.agents)
+        num_landmarks = len(self.world.landmarks)
 
-        perturbation_scale = 0.1  
+        # Genera posizioni casuali per i landmarks
+        random_landmark_positions = (position_range[1] - position_range[0]) * torch.rand(
+            (num_landmarks, 2), device=self.world.device, dtype=torch.float32
+        ) + position_range[0]
 
-        perturbations = (torch.rand((num_agents, 2), device=self.world.device, dtype=torch.float32) - 0.5) * perturbation_scale
-
-        # Set the agents' positions near the center
-        for i, agent in enumerate(self.world.agents):
-            
-            perturbed_pos = center_pos + perturbations[i]
-            agent.set_pos(
-                perturbed_pos,
+        # Setta le posizioni dei landmarks alle posizioni casuali generate
+        for i, landmark in enumerate(self.world.landmarks):
+            landmark.set_pos(
+                random_landmark_positions[i],
                 batch_index=env_index,
             )
+
+            # Genera posizioni casuali all'interno dell'area definita
+            random_agent_positions = (position_range[1] - position_range[0]) * torch.rand(
+                (num_agents, 2), device=self.world.device, dtype=torch.float32
+            ) + position_range[0]
+
+        # Setta le posizioni degli agenti alle posizioni casuali generate
+        for i, agent in enumerate(self.world.agents):
+            agent.set_pos(
+                random_agent_positions[i],
+                batch_index=env_index,
+            )
+
             if env_index is None:
                 agent.pos_shaping = (
                     torch.linalg.vector_norm(
