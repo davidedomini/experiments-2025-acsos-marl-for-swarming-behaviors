@@ -106,7 +106,21 @@ class CustomScenario(BaseScenario):
         pos_shaping = agent.distance_to_goal * self.pos_shaping_factor
         agent.pos_rew = agent.pos_shaping - pos_shaping
         agent.pos_shaping = pos_shaping
-        return agent.pos_rew
+
+        reward = agent.pos_rew
+
+        if hasattr(agent, 'previous_distance_to_goal'):
+            if agent.distance_to_goal > agent.previous_distance_to_goal:
+                reward -= 0.1
+        else:
+            agent.previous_distance_to_goal = agent.distance_to_goal
+
+        if agent.on_goal:
+            reward += 1.0
+
+        agent.previous_distance_to_goal = agent.distance_to_goal
+
+        return reward
 
     def observation(self, agent: Agent):
         # Return the agent's position and velocity

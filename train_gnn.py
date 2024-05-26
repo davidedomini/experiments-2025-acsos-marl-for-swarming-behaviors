@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 from torch_geometric.nn import GCNConv
-from vmas import make_env, Wrapper
+from vmas import make_env
 from custom_scenario import CustomScenario
 from torch_geometric.data import Data
 
@@ -36,6 +36,10 @@ class GCN(torch.nn.Module):
 def create_graph_from_observations(observations):
     node_features = [observations[f'agent{i}'] for i in range(len(observations))]
     node_features = torch.stack(node_features, dim=0).squeeze(dim=1)
+    
+    # Normalizza le caratteristiche dei nodi
+    node_features = (node_features - node_features.mean(dim=0)) / (node_features.std(dim=0) + 1e-8)
+    
     num_agents = node_features.size(0)
     edge_index = []
     for i in range(num_agents):
@@ -45,6 +49,7 @@ def create_graph_from_observations(observations):
     edge_index = torch.tensor(edge_index, dtype=torch.long).t().contiguous()
     graph_data = Data(x=node_features, edge_index=edge_index)
     return graph_data
+
 
 def train_model():
     # Modello con output dimensione pari al numero di azioni possibili
@@ -57,7 +62,18 @@ def train_model():
         optimizer.zero_grad()
         out = model(graph_data)
         loss = F.cross_entropy(out, actions)
+        
+        # Aggiungi regularizzazione L2 per evitare overfitting
+        l2_lambda = 0.01
+        l2_norm = sum(p.pow(2.0).sum() for p in model.parameters())
+        loss = loss + l2_lambda * l2_norm
+        
         loss.backward()
+
+        # Controlla i gradienti
+        grad_norms = {name: param.grad.norm().item() for name, param in model.named_parameters() if param.grad is not None}
+        print(f'Gradient norms: {grad_norms}')
+
         optimizer.step()
         return loss.item()
 
