@@ -5,6 +5,13 @@ from vmas import make_env
 from custom_scenario import CustomScenario
 from torch_geometric.data import Data
 
+# Funzione per l'inizializzazione dei pesi
+def weights_init(m):
+    if isinstance(m, GCNConv):
+        torch.nn.init.kaiming_uniform_(m.lin.weight, nonlinearity='relu')
+        if m.lin.bias is not None:
+            torch.nn.init.zeros_(m.lin.bias)
+
 env = make_env(
     scenario=CustomScenario(),
     num_envs=1,
@@ -19,9 +26,10 @@ env = make_env(
 class GCN(torch.nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
         super(GCN, self).__init__()
-        self.conv1 = GCNConv(input_dim, hidden_dim)
-        self.conv2 = GCNConv(hidden_dim, hidden_dim)
-        self.conv3 = GCNConv(hidden_dim, output_dim)
+        self.conv1 = GCNConv(input_dim, hidden_dim, add_self_loops=False, bias=True)
+        self.conv2 = GCNConv(hidden_dim, hidden_dim, add_self_loops=False, bias=True)
+        self.conv3 = GCNConv(hidden_dim, output_dim, add_self_loops=False, bias=True)
+        self.apply(weights_init)  # Applica l'inizializzazione dei pesi
 
     def forward(self, data):
         x, edge_index = data.x, data.edge_index
@@ -31,7 +39,6 @@ class GCN(torch.nn.Module):
         x = torch.relu(x)
         x = self.conv3(x, edge_index)
         return x
-
 
 def create_graph_from_observations(observations):
     node_features = [observations[f'agent{i}'] for i in range(len(observations))]
@@ -50,12 +57,11 @@ def create_graph_from_observations(observations):
     graph_data = Data(x=node_features, edge_index=edge_index)
     return graph_data
 
-
 def train_model():
     # Modello con output dimensione pari al numero di azioni possibili
     num_actions = 9  
     model = GCN(input_dim=4, hidden_dim=16, output_dim=num_actions)
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
     def train_step(graph_data, actions, rewards):
         model.train()
@@ -70,9 +76,12 @@ def train_model():
         
         loss.backward()
 
+        # Clipping dei gradienti
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+
         # Controlla i gradienti
-        grad_norms = {name: param.grad.norm().item() for name, param in model.named_parameters() if param.grad is not None}
-        print(f'Gradient norms: {grad_norms}')
+        grad_norms = {name: param.grad.norm().item() if param.grad is not None else 0.0 for name, param in model.named_parameters()}
+        #print(f'Gradient norms: {grad_norms}')
 
         optimizer.step()
         return loss.item()
@@ -85,12 +94,16 @@ def train_model():
             graph_data = create_graph_from_observations(observations)
             
             logits = model(graph_data)
+            #print(logits)
             actions = torch.argmax(logits, dim=1)  # Seleziona l'azione con il valore più alto
 
             actions_dict = {f'agent{i}': torch.tensor([actions[i].item()]) for i in range(len(env.agents))}
             observations, rewards, done, _ = env.step(actions_dict)
+            print(observations)
+            #print(actions_dict)
             
             rewards_tensor = torch.tensor([rewards[f'agent{i}'] for i in range(len(env.agents))], dtype=torch.float)
+            print(rewards_tensor)
             
             # Normalizza i rewards se necessario
             rewards_tensor = (rewards_tensor - rewards_tensor.mean()) / (rewards_tensor.std() + 1e-8)
