@@ -4,8 +4,8 @@ from torch_geometric.nn import GCNConv
 from vmas import make_env
 from custom_scenario import CustomScenario
 from torch_geometric.data import Data
+import random
 
-# Funzione per l'inizializzazione dei pesi
 def weights_init(m):
     if isinstance(m, GCNConv):
         torch.nn.init.kaiming_uniform_(m.lin.weight, nonlinearity='relu')
@@ -28,8 +28,9 @@ class GCN(torch.nn.Module):
         super(GCN, self).__init__()
         self.conv1 = GCNConv(input_dim, hidden_dim, add_self_loops=False, bias=True)
         self.conv2 = GCNConv(hidden_dim, hidden_dim, add_self_loops=False, bias=True)
-        self.conv3 = GCNConv(hidden_dim, output_dim, add_self_loops=False, bias=True)
-        self.apply(weights_init)  # Applica l'inizializzazione dei pesi
+        self.conv3 = GCNConv(hidden_dim, hidden_dim, add_self_loops=False, bias=True)
+        self.conv4 = GCNConv(hidden_dim, output_dim, add_self_loops=False, bias=True)
+        self.apply(weights_init)
 
     def forward(self, data):
         x, edge_index = data.x, data.edge_index
@@ -38,6 +39,8 @@ class GCN(torch.nn.Module):
         x = self.conv2(x, edge_index)
         x = torch.relu(x)
         x = self.conv3(x, edge_index)
+        x = torch.relu(x)
+        x = self.conv4(x, edge_index)
         return x
 
 def create_graph_from_observations(observations):
@@ -46,6 +49,10 @@ def create_graph_from_observations(observations):
     
     # Normalizza le caratteristiche dei nodi
     node_features = (node_features - node_features.mean(dim=0)) / (node_features.std(dim=0) + 1e-8)
+    
+    # Aggiungi un identificatore unico per ogni agente
+    agent_ids = torch.arange(len(observations)).float().unsqueeze(1)
+    node_features = torch.cat([node_features, agent_ids], dim=1)
     
     num_agents = node_features.size(0)
     edge_index = []
@@ -58,66 +65,64 @@ def create_graph_from_observations(observations):
     return graph_data
 
 def train_model():
-    # Modello con output dimensione pari al numero di azioni possibili
     num_actions = 9  
-    model = GCN(input_dim=4, hidden_dim=16, output_dim=num_actions)
+    model = GCN(input_dim=5, hidden_dim=32, output_dim=num_actions)  # Aggiunto un neurone per l'ID agente
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
     def train_step(graph_data, actions, rewards):
         model.train()
         optimizer.zero_grad()
-        out = model(graph_data)
-        loss = F.cross_entropy(out, actions)
+        logits = model(graph_data)
+
+        log_probs = F.log_softmax(logits, dim=1)
+        selected_log_probs = log_probs[range(len(actions)), actions]
+
+        loss = -torch.mean(selected_log_probs * rewards)
         
-        # Aggiungi regularizzazione L2 per evitare overfitting
-        l2_lambda = 0.01
+        l2_lambda = 0.001  # Ridotto per evitare overfitting
         l2_norm = sum(p.pow(2.0).sum() for p in model.parameters())
-        loss = loss + l2_lambda * l2_norm
+        loss += l2_lambda * l2_norm
         
         loss.backward()
-
-        # Clipping dei gradienti
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-
-        # Controlla i gradienti
-        grad_norms = {name: param.grad.norm().item() if param.grad is not None else 0.0 for name, param in model.named_parameters()}
-        #print(f'Gradient norms: {grad_norms}')
-
         optimizer.step()
         return loss.item()
 
-    for episode in range(100):  # Numero di episodi di addestramento
-        observations = env.reset()  # Reset dell'ambiente all'inizio di ogni episodio
+    epsilon = 0.1  
+    epsilon_decay = 0.995  # Introduzione di epsilon decay
+    min_epsilon = 0.01
+
+    for episode in range(100):  
+        observations = env.reset()
         episode_loss = 0
         
-        for step in range(100):  # Numero di passi per episodio
+        for step in range(100):
             graph_data = create_graph_from_observations(observations)
             
             logits = model(graph_data)
-            #print(logits)
-            actions = torch.argmax(logits, dim=1)  # Seleziona l'azione con il valore più alto
+            #print(f'Logits: {logits}')  
+
+            if random.random() < epsilon:
+                actions = torch.tensor([random.randint(0, num_actions - 1) for _ in range(len(env.agents))])
+            else:
+                actions = torch.argmax(logits, dim=1)
 
             actions_dict = {f'agent{i}': torch.tensor([actions[i].item()]) for i in range(len(env.agents))}
             observations, rewards, done, _ = env.step(actions_dict)
-            print(observations)
-            #print(actions_dict)
-            
+            #print(actions_dict) 
             rewards_tensor = torch.tensor([rewards[f'agent{i}'] for i in range(len(env.agents))], dtype=torch.float)
-            print(rewards_tensor)
             
-            # Normalizza i rewards se necessario
             rewards_tensor = (rewards_tensor - rewards_tensor.mean()) / (rewards_tensor.std() + 1e-8)
             
             loss = train_step(graph_data, actions, rewards_tensor)
             episode_loss += loss
 
-        # Per ogni episodio, calcola la perdita media
+        epsilon = max(min_epsilon, epsilon * epsilon_decay)
+        
         average_loss = episode_loss / 100
-        print(f'Episode {episode}, Loss: {average_loss}')
+        print(f'Episode {episode}, Loss: {average_loss}, Epsilon: {epsilon}')
 
     print("Training completed")
-
-    # Salva il modello addestrato
     torch.save(model.state_dict(), 'gcn_model.pth')
     print("Model saved successfully!")
 

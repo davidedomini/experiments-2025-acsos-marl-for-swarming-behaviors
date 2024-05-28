@@ -7,7 +7,7 @@ from vmas.simulator.utils import save_video
 import time
 
 # Crea un'istanza del modello
-model = GCN(input_dim=4, hidden_dim=16, output_dim=9)
+model = GCN(input_dim=5, hidden_dim=32, output_dim=9)
 # Carica i pesi del modello
 model.load_state_dict(torch.load('gcn_model.pth'))
 model.eval()
