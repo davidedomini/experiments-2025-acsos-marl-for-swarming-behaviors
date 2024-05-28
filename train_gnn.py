@@ -47,12 +47,12 @@ def create_graph_from_observations(observations):
     node_features = [observations[f'agent{i}'] for i in range(len(observations))]
     node_features = torch.stack(node_features, dim=0).squeeze(dim=1)
     
-    # Normalizza le caratteristiche dei nodi
-    node_features = (node_features - node_features.mean(dim=0)) / (node_features.std(dim=0) + 1e-8)
-    
     # Aggiungi un identificatore unico per ogni agente
     agent_ids = torch.arange(len(observations)).float().unsqueeze(1)
+    
     node_features = torch.cat([node_features, agent_ids], dim=1)
+    """ print(observations)
+    print(node_features) """
     
     num_agents = node_features.size(0)
     edge_index = []
