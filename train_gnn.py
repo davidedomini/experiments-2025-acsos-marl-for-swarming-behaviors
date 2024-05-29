@@ -70,23 +70,23 @@ def train_model():
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
     def train_step(graph_data, actions, rewards):
-        model.train()
-        optimizer.zero_grad()
-        logits = model(graph_data)
-
-        log_probs = F.log_softmax(logits, dim=1)
-        selected_log_probs = log_probs[range(len(actions)), actions]
-
-        loss = -torch.mean(selected_log_probs * rewards)
+        model.train()  # Imposta il modello in modalità di addestramento
+        optimizer.zero_grad()  # Azzera i gradienti dei parametri del modello
+        logits = model(graph_data)  # Calcola i logit del modello dati i dati del grafo
         
-        l2_lambda = 0.001  # Ridotto per evitare overfitting
-        l2_norm = sum(p.pow(2.0).sum() for p in model.parameters())
-        loss += l2_lambda * l2_norm
+        log_probs = F.log_softmax(logits, dim=1)  # Calcola i log delle probabilità softmax
+        selected_log_probs = log_probs[range(len(actions)), actions]  # Seleziona i log delle probabilità corrispondenti alle azioni effettuate
         
-        loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-        optimizer.step()
-        return loss.item()
+        loss = -torch.mean(selected_log_probs * rewards)  # Calcola la loss negativa della log likelihood pesata per le ricompense
+        
+        l2_lambda = 0.001  # Coefficiente di regolarizzazione L2
+        l2_norm = sum(p.pow(2.0).sum() for p in model.parameters())  # Calcola la norma L2 dei pesi del modello
+        loss += l2_lambda * l2_norm  # Aggiunge il termine di regolarizzazione L2 alla loss
+        
+        loss.backward()  # Esegue la retropropagazione del gradiente
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)  # Applica la clip del gradiente per evitare problemi di esplosione del gradiente
+        optimizer.step()  # Esegue un passaggio di ottimizzazione utilizzando l'ottimizzatore
+        return loss.item()  # Restituisce il valore della loss come float
 
     epsilon = 0.1  
     epsilon_decay = 0.995  # Introduzione di epsilon decay
