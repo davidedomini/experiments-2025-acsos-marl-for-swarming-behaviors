@@ -11,7 +11,7 @@ from vmas.simulator.utils import Color, X, Y, ScenarioUtils
 
 class CustomScenario(BaseScenario):
     def make_world(self, batch_dim: int, device: torch.device, **kwargs):    
-        self.pos_shaping_factor = kwargs.get("pos_shaping_factor", 1)
+        self.pos_shaping_factor = kwargs.get("pos_shaping_factor", 10)
         self.agent_radius = kwargs.get("agent_radius", 0.1)
         self.n_agents = kwargs.get("n_agents", 1)
 

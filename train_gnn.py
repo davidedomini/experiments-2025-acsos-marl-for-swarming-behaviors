@@ -69,6 +69,33 @@ def train_model():
     model = GCN(input_dim=5, hidden_dim=32, output_dim=num_actions)  # Aggiunto un neurone per l'ID agente
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
+    global_reward_mean = 0.0
+    global_reward_var = 0.0
+    global_reward_count = 0
+
+    def update_global_reward_stats(rewards):
+        nonlocal global_reward_mean, global_reward_var, global_reward_count
+        global_reward_count += rewards.size(0)
+        delta = rewards - global_reward_mean
+        global_reward_mean += delta.sum() / global_reward_count
+        delta2 = rewards - global_reward_mean
+        global_reward_var += delta.mul(delta2).sum()
+    
+        # Stampa per debug
+        #print(f"Updated stats - Mean: {global_reward_mean}, Var: {global_reward_var}, Count: {global_reward_count}")
+
+
+    def get_normalized_rewards(rewards):
+        std = (global_reward_var / global_reward_count).sqrt()
+        std = std + 1e-8  # Aggiunta di epsilon per evitare divisioni per zero
+        normalized_rewards = (rewards - global_reward_mean) / std
+        
+        # Stampa per debug
+        #print(f"Rewards: {rewards}, Normalized rewards: {normalized_rewards}")
+        
+        return normalized_rewards
+
+
     def train_step(graph_data, actions, rewards):
         model.train()  # Imposta il modello in modalità di addestramento
         optimizer.zero_grad()  # Azzera i gradienti dei parametri del modello
@@ -79,16 +106,20 @@ def train_model():
         
         loss = -torch.mean(selected_log_probs * rewards)  # Calcola la loss negativa della log likelihood pesata per le ricompense
         
-        l2_lambda = 0.001  # Coefficiente di regolarizzazione L2
+        l2_lambda = 0.01  # Coefficiente di regolarizzazione L2
         l2_norm = sum(p.pow(2.0).sum() for p in model.parameters())  # Calcola la norma L2 dei pesi del modello
         loss += l2_lambda * l2_norm  # Aggiunge il termine di regolarizzazione L2 alla loss
         
         loss.backward()  # Esegue la retropropagazione del gradiente
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)  # Applica la clip del gradiente per evitare problemi di esplosione del gradiente
         optimizer.step()  # Esegue un passaggio di ottimizzazione utilizzando l'ottimizzatore
+
+        # Stampa per debug
+        #print(f"Loss: {loss.item()}, Selected log probs: {selected_log_probs}, Rewards: {rewards}")
+
         return loss.item()  # Restituisce il valore della loss come float
 
-    epsilon = 0.1  
+    epsilon = 0.3  
     epsilon_decay = 0.995  # Introduzione di epsilon decay
     min_epsilon = 0.01
 
@@ -113,10 +144,12 @@ def train_model():
             #print(actions_dict) 
             rewards_tensor = torch.tensor([rewards[f'agent{i}'] for i in range(len(env.agents))], dtype=torch.float)
             
-            #rewards_tensor = (rewards_tensor - rewards_tensor.mean()) / (rewards_tensor.std() + 1e-8)
-            total_episode_reward += rewards_tensor  # Aggiorna il reward totale per l'episodio
+            update_global_reward_stats(rewards_tensor)
+            normalized_rewards = get_normalized_rewards(rewards_tensor)
+            #print(normalized_rewards)
+            total_episode_reward += normalized_rewards  # Aggiorna il reward totale per l'episodio
             
-            loss = train_step(graph_data, actions, rewards_tensor)
+            loss = train_step(graph_data, actions, normalized_rewards)
             episode_loss += loss
 
         epsilon = max(min_epsilon, epsilon * epsilon_decay)

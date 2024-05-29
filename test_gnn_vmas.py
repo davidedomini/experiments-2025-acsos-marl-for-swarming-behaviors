@@ -48,6 +48,8 @@ for step in range(n_steps):
     #print(observations)
     #print(actions_dict)
     observations, rewards, done, _ = env.step(actions_dict)
+    #print("obs: ", observations)
+    #print("rewards: ", rewards)
 
     total_reward += sum(rewards.values())
 
