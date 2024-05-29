@@ -1,8 +1,8 @@
-from train_gnn import GCN
+from train_gcn import GCN
 import torch
 from vmas import make_env
 from custom_scenario import CustomScenario
-from train_gnn import create_graph_from_observations
+from train_gcn import create_graph_from_observations
 from vmas.simulator.utils import save_video
 import time
 
