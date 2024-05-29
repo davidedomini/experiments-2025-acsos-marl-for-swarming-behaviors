@@ -103,22 +103,11 @@ class CustomScenario(BaseScenario):
         )
         agent.on_goal = agent.distance_to_goal < agent.goal.shape.radius
 
-        pos_shaping = agent.distance_to_goal * self.pos_shaping_factor
-        agent.pos_rew = agent.pos_shaping - pos_shaping
-        agent.pos_shaping = pos_shaping
+        pos_shaping = agent.distance_to_goal * self.pos_shaping_factor #Distanza attuale tra l'agente e il goal
+        agent.pos_rew = agent.pos_shaping - pos_shaping #Reward in base alla differenza tra la distanza precedente e quella attuale
+        agent.pos_shaping = pos_shaping #Salva la distanza per la prossima iterazione
 
         reward = agent.pos_rew
-
-        if hasattr(agent, 'previous_distance_to_goal'):
-            if agent.distance_to_goal > agent.previous_distance_to_goal:
-                reward -= 0.1
-        else:
-            agent.previous_distance_to_goal = agent.distance_to_goal
-
-        if agent.on_goal:
-            reward += 1.0
-
-        agent.previous_distance_to_goal = agent.distance_to_goal
 
         return reward
 
