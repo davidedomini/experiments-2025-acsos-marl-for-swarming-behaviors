@@ -95,6 +95,7 @@ def train_model():
     for episode in range(100):  
         observations = env.reset()
         episode_loss = 0
+        total_episode_reward = torch.zeros(2)  # Inizializza il reward totale per l'episodio
         
         for step in range(100):
             graph_data = create_graph_from_observations(observations)
@@ -112,7 +113,8 @@ def train_model():
             #print(actions_dict) 
             rewards_tensor = torch.tensor([rewards[f'agent{i}'] for i in range(len(env.agents))], dtype=torch.float)
             
-            rewards_tensor = (rewards_tensor - rewards_tensor.mean()) / (rewards_tensor.std() + 1e-8)
+            #rewards_tensor = (rewards_tensor - rewards_tensor.mean()) / (rewards_tensor.std() + 1e-8)
+            total_episode_reward += rewards_tensor  # Aggiorna il reward totale per l'episodio
             
             loss = train_step(graph_data, actions, rewards_tensor)
             episode_loss += loss
@@ -120,7 +122,7 @@ def train_model():
         epsilon = max(min_epsilon, epsilon * epsilon_decay)
         
         average_loss = episode_loss / 100
-        print(f'Episode {episode}, Loss: {average_loss}, Epsilon: {epsilon}')
+        print(f'Episode {episode}, Loss: {average_loss}, Reward: {total_episode_reward}, Epsilon: {epsilon}')
 
     print("Training completed")
     torch.save(model.state_dict(), 'gcn_model.pth')
