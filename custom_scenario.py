@@ -106,6 +106,8 @@ class CustomScenario(BaseScenario):
 
         reward = agent.pos_rew
 
+        reward = torch.clamp(reward, -1.0, 1.0)
+
         return reward
 
     def observation(self, agent: Agent):

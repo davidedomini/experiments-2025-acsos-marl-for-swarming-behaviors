@@ -5,11 +5,16 @@ from custom_scenario import CustomScenario
 from train_gcn import create_graph_from_observations
 from vmas.simulator.utils import save_video
 import time
+from train_simple_nn import SimpleNN
 
-# Crea un'istanza del modello
-model = GCN(input_dim=5, hidden_dim=32, output_dim=9)
-# Carica i pesi del modello
-model.load_state_dict(torch.load('gcn_model.pth'))
+
+""" model = GCN(input_dim=5, hidden_dim=32, output_dim=9)# Crea un'istanza del modello
+model.load_state_dict(torch.load('gcn_model.pth'))# Carica i pesi del modello """
+
+
+model = SimpleNN() 
+model.load_state_dict(torch.load('simple_nn_model.pth'))
+
 model.eval()
 print("Model loaded successfully!")
 
@@ -37,8 +42,9 @@ observations = env.reset()
 for step in range(n_steps):
     print(f"Step {step+1}")
 
-    graph_data = create_graph_from_observations(observations)
-    
+    #graph_data = create_graph_from_observations(observations)
+    graph_data = torch.cat([observations[f'agent{i}'] for i in range(len(env.agents))], dim=0)
+
     with torch.no_grad():
         logits = model(graph_data)
 
