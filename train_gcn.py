@@ -47,12 +47,14 @@ def create_graph_from_observations(observations):
     node_features = [observations[f'agent{i}'] for i in range(len(observations))]
     node_features = torch.stack(node_features, dim=0).squeeze(dim=1)
     
-    # Aggiungi un identificatore unico per ogni agente
+    # Aggiunge un identificatore unico per ogni agente
     agent_ids = torch.arange(len(observations)).float().unsqueeze(1)
     
     node_features = torch.cat([node_features, agent_ids], dim=1)
-    """ print(observations)
-    print(node_features) """
+
+    # DEBUG: osservazioni prese come input e node_features create
+    #print(observations)
+    #print(node_features)
     
     num_agents = node_features.size(0)
     edge_index = []
@@ -60,13 +62,14 @@ def create_graph_from_observations(observations):
         for j in range(i + 1, num_agents):
             edge_index.append([i, j])
             edge_index.append([j, i])
+    edge_index.append([0,0])
     edge_index = torch.tensor(edge_index, dtype=torch.long).t().contiguous()
     graph_data = Data(x=node_features, edge_index=edge_index)
     return graph_data
 
 def train_model():
     num_actions = 9  
-    model = GCN(input_dim=5, hidden_dim=32, output_dim=num_actions)  # Aggiunto un neurone per l'ID agente
+    model = GCN(input_dim=5, hidden_dim=32, output_dim=num_actions) 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
     global_reward_mean = 0.0
@@ -81,7 +84,7 @@ def train_model():
         delta2 = rewards - global_reward_mean
         global_reward_var += delta.mul(delta2).sum()
     
-        # Stampa per debug
+        # DEBUG: aggiornamento incrementale della media e varianza dei reward per la normalizzazione
         #print(f"Updated stats - Mean: {global_reward_mean}, Var: {global_reward_var}, Count: {global_reward_count}")
 
 
@@ -90,7 +93,7 @@ def train_model():
         std = std + 1e-8  # Aggiunta di epsilon per evitare divisioni per zero
         normalized_rewards = (rewards - global_reward_mean) / std
         
-        # Stampa per debug
+        # DEBUG: reward prima e dopo la normalizzazione
         #print(f"Rewards: {rewards}, Normalized rewards: {normalized_rewards}")
         
         return normalized_rewards
@@ -114,24 +117,26 @@ def train_model():
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)  # Applica la clip del gradiente per evitare problemi di esplosione del gradiente
         optimizer.step()  # Esegue un passaggio di ottimizzazione utilizzando l'ottimizzatore
 
-        # Stampa per debug
+        # DEBUG: loss dello step, distribuzione di probabilità per l'azione di ogni agente, rewards
         #print(f"Loss: {loss.item()}, Selected log probs: {selected_log_probs}, Rewards: {rewards}")
 
-        return loss.item()  # Restituisce il valore della loss come float
+        return loss.item() 
 
     epsilon = 0.3  
-    epsilon_decay = 0.995  # Introduzione di epsilon decay
+    epsilon_decay = 0.995 
     min_epsilon = 0.01
 
     for episode in range(100):  
         observations = env.reset()
         episode_loss = 0
-        total_episode_reward = torch.zeros(2)  # Inizializza il reward totale per l'episodio
+        total_episode_reward = torch.zeros(env.n_agents)  
         
         for step in range(100):
             graph_data = create_graph_from_observations(observations)
             
             logits = model(graph_data)
+
+            # DEBUG: logits restituiti in output dalla GCN
             #print(f'Logits: {logits}')  
 
             if random.random() < epsilon:
@@ -141,13 +146,13 @@ def train_model():
 
             actions_dict = {f'agent{i}': torch.tensor([actions[i].item()]) for i in range(len(env.agents))}
             observations, rewards, done, _ = env.step(actions_dict)
-            #print(actions_dict) 
+
             rewards_tensor = torch.tensor([rewards[f'agent{i}'] for i in range(len(env.agents))], dtype=torch.float)
             
             update_global_reward_stats(rewards_tensor)
             normalized_rewards = get_normalized_rewards(rewards_tensor)
-            #print(normalized_rewards)
-            total_episode_reward += normalized_rewards  # Aggiorna il reward totale per l'episodio
+            
+            total_episode_reward += normalized_rewards
             
             loss = train_step(graph_data, actions, normalized_rewards)
             episode_loss += loss

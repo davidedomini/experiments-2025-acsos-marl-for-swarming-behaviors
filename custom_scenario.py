@@ -18,10 +18,8 @@ class CustomScenario(BaseScenario):
         self.min_distance_between_entities = self.agent_radius * 2 + 0.05
         self.world_semidim = 1
 
-        # Make world
         world = World(batch_dim, device)
 
-        # Add goals
         goal = Landmark(
             name=f"goal",
             collide=False,
@@ -30,7 +28,6 @@ class CustomScenario(BaseScenario):
         world.add_landmark(goal)
 
         for i in range(self.n_agents):
-            # Add agents
             agent = Agent(
                 name=f"agent{i}",
                 collide=True,
@@ -47,7 +44,7 @@ class CustomScenario(BaseScenario):
         return world
 
     def reset_world_at(self, env_index: int = None):
-        # Definisci i limiti dell'area in cui posizionare gli agenti
+        # Definisce i limiti dell'area in cui posizionare gli agenti
         position_range = (-1, 1)
         
         num_agents = len(self.world.agents)
@@ -101,9 +98,9 @@ class CustomScenario(BaseScenario):
             agent.state.pos - agent.goal.state.pos,
             dim=-1,
         )
-        agent.on_goal = agent.distance_to_goal < agent.goal.shape.radius
+        agent.on_goal = agent.distance_to_goal < agent.goal.shape.radius 
 
-        pos_shaping = agent.distance_to_goal * self.pos_shaping_factor #Distanza attuale tra l'agente e il goal
+        pos_shaping = agent.distance_to_goal * self.pos_shaping_factor #Distanza attuale tra l'agente e il goal pesandola per shaping_factor
         agent.pos_rew = agent.pos_shaping - pos_shaping #Reward in base alla differenza tra la distanza precedente e quella attuale
         agent.pos_shaping = pos_shaping #Salva la distanza per la prossima iterazione
 
@@ -112,7 +109,6 @@ class CustomScenario(BaseScenario):
         return reward
 
     def observation(self, agent: Agent):
-        # Return the agent's position and velocity
         return torch.cat(
             [
                 agent.state.pos,
@@ -122,7 +118,6 @@ class CustomScenario(BaseScenario):
         )
 
     def done(self):
-        # Define the termination condition (if any, currently none)
         return torch.zeros(self.world.batch_dim, device=self.world.device, dtype=torch.bool)
 
     def info(self, agent: Agent):

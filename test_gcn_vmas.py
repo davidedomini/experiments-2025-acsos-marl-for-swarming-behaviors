@@ -22,17 +22,17 @@ env = make_env(
     dict_spaces=True,
     wrapper=None,
     seed=None,
-    # Environment specific variables
     n_agents=2,
 )
+
 render = True
 save_render = False
-frame_list = []  # For creating a gif
+frame_list = [] 
 init_time = time.time()
-n_steps = 100  # Numero di passi per episodio
+n_steps = 100
 total_reward = 0
 
-observations = env.reset()  # Reset dell'ambiente all'inizio dell'episodio
+observations = env.reset() 
 
 for step in range(n_steps):
     print(f"Step {step+1}")
@@ -41,22 +41,22 @@ for step in range(n_steps):
     
     with torch.no_grad():
         logits = model(graph_data)
-        print(logits)
+
+        #DEBUG: stampa i logits restituiti dal modello
+        #print(logits)
+        
         actions = torch.argmax(logits, dim=1)
     
     actions_dict = {f'agent{i}': torch.tensor([actions[i].item()]) for i in range(len(env.agents))}
-    #print(observations)
-    #print(actions_dict)
+    
     observations, rewards, done, _ = env.step(actions_dict)
-    #print("obs: ", observations)
-    #print("rewards: ", rewards)
 
     total_reward += sum(rewards.values())
 
     if render:
         frame = env.render(
             mode="rgb_array",
-            agent_index_focus=None,  # Can give the camera an agent index to focus on
+            agent_index_focus=None,
             visualize_when_rgb=True,
         )
         if save_render:
