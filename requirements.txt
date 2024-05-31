@@ -7,7 +7,7 @@ Packets:
 
 Train GCN: execute train_gcn.py
 
-Simulate one run in VMAS: execute test_gcn_vmas
+Simulate one run in VMAS: execute test_gcn_vmas.py
 
 Debug:
     - train_gcn: Enable logs for print observations, rewards, graph features, loss and logits.
