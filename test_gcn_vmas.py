@@ -8,12 +8,12 @@ import time
 from train_simple_nn import SimpleNN
 
 
-""" model = GCN(input_dim=5, hidden_dim=32, output_dim=9)# Crea un'istanza del modello
-model.load_state_dict(torch.load('gcn_model.pth'))# Carica i pesi del modello """
+model = GCN(input_dim=5, hidden_dim=32, output_dim=9)# Crea un'istanza del modello
+model.load_state_dict(torch.load('gcn_model.pth'))# Carica i pesi del modello
 
 
-model = SimpleNN() 
-model.load_state_dict(torch.load('simple_nn_model.pth'))
+""" model = SimpleNN() 
+model.load_state_dict(torch.load('simple_nn_model.pth')) """
 
 model.eval()
 print("Model loaded successfully!")
@@ -42,14 +42,14 @@ observations = env.reset()
 for step in range(n_steps):
     print(f"Step {step+1}")
 
-    #graph_data = create_graph_from_observations(observations)
-    graph_data = torch.cat([observations[f'agent{i}'] for i in range(len(env.agents))], dim=0)
+    graph_data = create_graph_from_observations(observations)
+    #graph_data = torch.cat([observations[f'agent{i}'] for i in range(len(env.agents))], dim=0)
 
     with torch.no_grad():
         logits = model(graph_data)
 
         #DEBUG: stampa i logits restituiti dal modello
-        #print(logits)
+        print("Logits: ",logits)
         
         actions = torch.argmax(logits, dim=1)
     
