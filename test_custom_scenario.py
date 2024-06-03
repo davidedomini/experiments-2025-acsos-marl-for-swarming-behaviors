@@ -7,7 +7,7 @@ from vmas import make_env
 from vmas.simulator.core import Agent
 from vmas.simulator.utils import save_video
 from custom_scenario import CustomScenario
-from ray.rllib.agents.ppo import PPOTrainer
+from ray.rllib.algorithms.ppo import PPO
 import numpy as np
 from vmas.simulator.environment.rllib import VectorEnvWrapper
 
@@ -30,7 +30,7 @@ def use_vmas_env(
     random_action: bool = False,
     scenario_name: str = "custom_scenario",
     visualize_render: bool = True,
-    trainer: PPOTrainer = None,
+    trainer: PPO = None,
     env_config: dict = None,
 ):
     assert not (save_render and not render), "To save the video you have to render it"
@@ -47,7 +47,6 @@ def use_vmas_env(
         # Environment specific variables
         n_agents=env_config["scenario_config"]["n_agents"],
     )
-
     frame_list = []  # For creating a gif
     init_time = time.time()
     step = 0

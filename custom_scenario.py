@@ -117,6 +117,7 @@ class CustomScenario(BaseScenario):
             dim=-1,
         )
 
+    
     def done(self):
         return torch.zeros(self.world.batch_dim, device=self.world.device, dtype=torch.bool)
 
