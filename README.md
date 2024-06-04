@@ -29,7 +29,7 @@
 
 - **Training step**:
     - 100 episodes with 100 step
-    - **Adam** as **Optimizer** with a learning rate of
+    - **Adam** as **Optimizer** with a learning rate of 0.001
 	- **log likelihood** for calculate the loss
 	- **L2 regularization** for avoiding overfitting from 0.001 to 0.1
 	- **clip of the gradient** for avoid gradient vanishing/explosion from 1.0 to 5.0
