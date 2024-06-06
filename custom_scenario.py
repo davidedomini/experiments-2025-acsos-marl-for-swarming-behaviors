@@ -19,6 +19,9 @@ class CustomScenario(BaseScenario):
         self.min_distance_between_entities = self.agent_radius * 2 + 0.05
         self.world_semidim = 1
 
+        self.collective_reward = 0
+        self.collective_goal_reached_reward = 0
+
         world = World(batch_dim, device)
 
         goal = Landmark(
@@ -59,7 +62,7 @@ class CustomScenario(BaseScenario):
         # Setta le posizioni dei landmarks alle posizioni casuali generate
         for i, landmark in enumerate(self.world.landmarks):
             landmark.set_pos(
-                torch.tensor([-0.1, 0.5]),#random_landmark_positions[i],
+                torch.tensor([-0.8, 0.8]),#random_landmark_positions[i],
                 batch_index=env_index,
             ) 
 
@@ -93,8 +96,24 @@ class CustomScenario(BaseScenario):
                     * self.pos_shaping_factor
                 )
 
-    def reward(self, agent: Agent):
-        return self.agent_reward(agent)
+    def reward(self, agent):
+        if agent == self.world.agents[0]:
+            self.collective_goal_reached_reward = 0
+            self.collective_reward = 0
+
+            collective_goal_reached = True
+            for a in self.world.agents:
+                self.collective_reward += self.agent_reward(a)
+                collective_goal_reached = collective_goal_reached and a.on_goal
+
+            if collective_goal_reached:
+                self.collective_goal_reached_reward = 100
+
+        return self.collective_reward + self.collective_goal_reached_reward
+        """ total_reward = 0
+        for agent in self.world.agents:
+            total_reward += self.agent_reward(agent)
+        return total_reward / len(self.world.agents) """
     
     def agent_reward(self, agent: Agent):
         agent.distance_to_goal = torch.linalg.vector_norm(
@@ -110,7 +129,7 @@ class CustomScenario(BaseScenario):
         reward = agent.pos_rew
 
         if agent.on_goal:
-            reward = reward + 50
+            reward = reward + 10
 
         return reward
 

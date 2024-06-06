@@ -1,4 +1,4 @@
-from train_gcn import GCN
+from train_gcn_dqn import GCN
 import torch
 from vmas import make_env
 from custom_scenario import CustomScenario
