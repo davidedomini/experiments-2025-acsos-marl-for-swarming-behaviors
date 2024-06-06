@@ -1,6 +1,7 @@
 from typing import Callable, Dict
 
 import torch
+import random
 from torch import Tensor
 from vmas import render_interactively
 from vmas.simulator.core import Agent, Landmark, Sphere, World, Entity
@@ -26,7 +27,7 @@ class CustomScenario(BaseScenario):
             color=Color.BLACK,
         )
         world.add_landmark(goal)
-
+        
         for i in range(self.n_agents):
             agent = Agent(
                 name=f"agent{i}",
@@ -50,22 +51,24 @@ class CustomScenario(BaseScenario):
         num_agents = len(self.world.agents)
         num_landmarks = len(self.world.landmarks)
 
-        # Genera posizioni casuali per i landmarks
+        """ # Genera posizioni casuali per i landmarks
         random_landmark_positions = (position_range[1] - position_range[0]) * torch.rand(
             (num_landmarks, 2), device=self.world.device, dtype=torch.float32
-        ) + position_range[0]
+        ) + position_range[0]"""
 
         # Setta le posizioni dei landmarks alle posizioni casuali generate
         for i, landmark in enumerate(self.world.landmarks):
             landmark.set_pos(
-                random_landmark_positions[i],
+                torch.tensor([-0.1, 0.5]),#random_landmark_positions[i],
                 batch_index=env_index,
-            )
+            ) 
 
-            # Genera posizioni casuali all'interno dell'area definita
-            random_agent_positions = (position_range[1] - position_range[0]) * torch.rand(
-                (num_agents, 2), device=self.world.device, dtype=torch.float32
-            ) + position_range[0]
+        # Genera posizioni casuali all'interno dell'area definita
+        random_agent_positions = (position_range[1] - position_range[0]) * torch.rand(
+            (num_agents, 2), device=self.world.device, dtype=torch.float32
+        ) + position_range[0]
+
+        random_agent_positions = torch.tensor([[0.1, 0.1], [0.2, 0.2], [0.3, 0.3]])
 
         # Setta le posizioni degli agenti alle posizioni casuali generate
         for i, agent in enumerate(self.world.agents):
@@ -105,6 +108,9 @@ class CustomScenario(BaseScenario):
         agent.pos_shaping = pos_shaping #Salva la distanza per la prossima iterazione
 
         reward = agent.pos_rew
+
+        if agent.on_goal:
+            reward = reward + 50
 
         return reward
 

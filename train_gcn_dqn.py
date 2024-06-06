@@ -103,6 +103,7 @@ def train_model():
     
         # DEBUG: aggiornamento incrementale della media e varianza dei reward per la normalizzazione
         #print(f"Updated stats - Mean: {global_reward_mean}, Var: {global_reward_var}, Count: {global_reward_count}")
+        
     def train_step_dqn(replay_buffer, batch_size, model, target_model, ticks, gamma=0.99, update_target_every=10):
         if(len(replay_buffer.buffer) < batch_size):
             return 0
