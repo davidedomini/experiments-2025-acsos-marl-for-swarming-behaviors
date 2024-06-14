@@ -55,7 +55,7 @@ class CustomGNNModel(TorchModelV2, torch.nn.Module):
 
         input_dim = 4 * 32 
         hidden_dim = model_config.get("custom_model_config", {}).get("hidden_dim", 32)
-        output_dim = 9  
+        output_dim = 9 
 
         self.gnn = GNNModel(input_dim, hidden_dim, output_dim)
 
@@ -65,7 +65,8 @@ class CustomGNNModel(TorchModelV2, torch.nn.Module):
         #print("AGENT STATES CONTENT: ", agent_states)
         graph_data = build_graph(agent_states)
         logits = self.gnn.forward(graph_data)
-        return logits.view(logits.size(0), -1), state
+        print("LOGITS: ",logits)
+        return logits, state
 
     def value_function(self):
         return torch.zeros(1)

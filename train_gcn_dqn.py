@@ -16,7 +16,7 @@ env = make_env(
     wrapper=None,
     max_steps=200,
     dict_spaces=True,
-    n_agents=1,
+    n_agents=3,
 )
 
 class GraphReplayBuffer:
@@ -87,8 +87,8 @@ def train_model():
     model = GCN(input_dim=5, hidden_dim=32, output_dim=num_actions) 
     target_model = GCN(input_dim=5, hidden_dim=32, output_dim=num_actions)
     target_model.load_state_dict(model.state_dict())
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
-    replay = GraphReplayBuffer(3000)
+    optimizer = torch.optim.RMSprop(model.parameters(), lr=0.0001)
+    replay = GraphReplayBuffer(6000)
     global_reward_mean = 0.0
     global_reward_var = 0.0
     global_reward_count = 0
@@ -129,12 +129,11 @@ def train_model():
     epsilon_decay = 0.9
     min_epsilon = 0.05
     ticks = 0
-    episodes = 1000
+    episodes = 800
     for episode in range(episodes):  
         observations = env.reset()    
         episode_loss = 0
         total_episode_reward = torch.zeros(env.n_agents)  
-        
         for step in range(100):
             if episode % 10 == 0:
                 env.render(
@@ -160,7 +159,7 @@ def train_model():
             replay.push(graph_data, actions, rewards_tensor, create_graph_from_observations(newObservations))
             update_global_reward_stats(rewards_tensor)
             writer.add_scalar('Reward', rewards_tensor.sum().item(), ticks)
-            loss = train_step_dqn(replay, 32, model, target_model, ticks, update_target_every=100)
+            loss = train_step_dqn(replay, 128, model, target_model, ticks, update_target_every=10)
             episode_loss += loss
             total_episode_reward += rewards_tensor
             observations = newObservations

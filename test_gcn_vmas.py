@@ -2,7 +2,7 @@ from train_gcn_dqn import GCN
 import torch
 from vmas import make_env
 from custom_scenario import CustomScenario
-from train_gcn import create_graph_from_observations
+from train_gcn_dqn import create_graph_from_observations
 from vmas.simulator.utils import save_video
 import time
 from train_simple_nn import SimpleNN
@@ -27,7 +27,7 @@ env = make_env(
     dict_spaces=True,
     wrapper=None,
     seed=None,
-    n_agents=2,
+    n_agents=3,
 )
 
 render = True

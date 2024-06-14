@@ -138,6 +138,7 @@ class CustomScenario(BaseScenario):
             [
                 agent.state.pos,
                 agent.state.vel,
+                #self.world.landmarks[0].state.pos
             ],
             dim=-1,
         )
