@@ -93,8 +93,8 @@ def create_graph_from_observations(observations):
 
 def train_model():
     num_actions = 9  
-    model = GCN(input_dim=5, hidden_dim=32, output_dim=num_actions) 
-    target_model = GCN(input_dim=5, hidden_dim=32, output_dim=num_actions)
+    model = GCN(input_dim=7, hidden_dim=32, output_dim=num_actions) 
+    target_model = GCN(input_dim=7, hidden_dim=32, output_dim=num_actions)
     target_model.load_state_dict(model.state_dict())
     optimizer = torch.optim.RMSprop(model.parameters(), lr=0.0001)
     replay = GraphReplayBuffer(6000)

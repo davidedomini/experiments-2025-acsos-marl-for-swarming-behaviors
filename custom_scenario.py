@@ -13,12 +13,16 @@ from vmas.simulator.utils import Color, X, Y, ScenarioUtils
 class CustomScenario(BaseScenario):
     def make_world(self, batch_dim: int, device: torch.device, **kwargs):    
         self.pos_shaping_factor = kwargs.get("pos_shaping_factor", 10.0)
+        self.dist_shaping_factor = kwargs.get("dist_shaping_factor", 10.0)
         self.agent_radius = kwargs.get("agent_radius", 0.1)
         self.n_agents = kwargs.get("n_agents", 1)
 
         self.min_distance_between_entities = self.agent_radius * 2 + 0.05
         self.world_semidim = 1
 
+        self.collision_reward = -0.1
+        self.desired_distance = 0.15
+        self.min_collision_distance = 0.005
         self.collective_reward = 0
         self.collective_goal_reached_reward = 0
 
@@ -39,6 +43,7 @@ class CustomScenario(BaseScenario):
                 render_action=True,
             )
             agent.pos_rew = torch.zeros(batch_dim, device=device)
+            agent.collision_rew = agent.pos_rew.clone()
             agent.goal = goal
             world.add_agent(agent)
 
@@ -67,16 +72,33 @@ class CustomScenario(BaseScenario):
             ) 
 
         # Genera posizioni casuali all'interno dell'area definita
-        random_agent_positions = (position_range[1] - position_range[0]) * torch.rand(
+        """ random_agent_positions = (position_range[1] - position_range[0]) * torch.rand(
             (num_agents, 2), device=self.world.device, dtype=torch.float32
+        ) + position_range[0] """
+
+        central_position = (position_range[1] - position_range[0]) * torch.rand(
+            (1, 2), device=self.world.device, dtype=torch.float32
         ) + position_range[0]
 
-        random_agent_positions = torch.tensor([[0.0, 0.0], [-0.1, 0.0], [0.1, 0.0], [0.0, -0.1], [0.0, 0.1]])
+        offsets = torch.tensor([
+            [-0.15, 0.0],  # sinistra
+            [0.15, 0.0],   # destra
+            [0.0, 0.15],   # sopra
+            [0.0, -0.15]   # sotto
+        ], device='cpu', dtype=torch.float32)
+
+        # Calcolare le posizioni degli altri agenti
+        surrounding_positions = central_position + offsets
+
+        # Concatenare la posizione centrale con le posizioni circostanti
+        all__agents_positions = torch.cat((central_position, surrounding_positions), dim=0)
+
+        #random_agent_positions = torch.tensor([[0.0, 0.0], [-0.1, 0.0], [0.1, 0.0], [0.0, -0.1], [0.0, 0.1]])
 
         # Setta le posizioni degli agenti alle posizioni casuali generate
         for i, agent in enumerate(self.world.agents):
             agent.set_pos(
-                random_agent_positions[i],
+                all__agents_positions[i],
                 batch_index=env_index,
             )
 
@@ -88,6 +110,20 @@ class CustomScenario(BaseScenario):
                     )
                     * self.pos_shaping_factor
                 )
+
+                agent.previous_distance_to_agents = (
+                    torch.stack(
+                        [
+                            torch.linalg.vector_norm(
+                                agent.state.pos - a.state.pos, dim=-1
+                            )
+                            for a in self.world.agents
+                            if a != agent
+                        ],
+                        dim=1,
+                    )
+                    - self.desired_distance
+                ).pow(2).mean(-1) * self.dist_shaping_factor
             else:
                 agent.previous_distance_to_goal[env_index] = (
                     torch.linalg.vector_norm(
@@ -96,6 +132,21 @@ class CustomScenario(BaseScenario):
                     * self.pos_shaping_factor
                 )
 
+                agent.previous_distance_to_agents[env_index] = (
+                    torch.stack(
+                        [
+                            torch.linalg.vector_norm(
+                                agent.state.pos[env_index] - a.state.pos[env_index]
+                            )
+                            for a in self.world.agents
+                            if a != agent
+                        ],
+                        dim=0,
+                    )
+                    - self.desired_distance
+                ).pow(2).mean(-1) * self.dist_shaping_factor
+        
+
     def reward(self, agent):
         if agent == self.world.agents[0]:
             self.collective_goal_reached_reward = 0
@@ -103,19 +154,15 @@ class CustomScenario(BaseScenario):
 
             collective_goal_reached = True
             for a in self.world.agents:
-                self.collective_reward += self.agent_reward(a)
+                self.collective_reward += self.distance_to_goal_reward(a) + self.distance_to_agents_reward(a)
                 collective_goal_reached = collective_goal_reached and a.on_goal
 
             if collective_goal_reached:
                 self.collective_goal_reached_reward = 100
 
         return self.collective_reward + self.collective_goal_reached_reward
-        """ total_reward = 0
-        for agent in self.world.agents:
-            total_reward += self.agent_reward(agent)
-        return total_reward / len(self.world.agents) """
     
-    def agent_reward(self, agent: Agent):
+    def distance_to_goal_reward(self, agent: Agent):
         agent.distance_to_goal = torch.linalg.vector_norm(
             agent.state.pos - agent.goal.state.pos,
             dim=-1,
@@ -131,19 +178,58 @@ class CustomScenario(BaseScenario):
         if agent.on_goal:
             reward = reward + 20
 
-        return reward
+        return reward 
+    
+    def distance_to_agents_reward(self, agent: Agent):
+        distance_to_agents = (
+            torch.stack(
+                [
+                    torch.linalg.vector_norm(agent.state.pos - a.state.pos, dim=-1)
+                    for a in self.world.agents
+                    if a != agent
+                ],
+                dim=1,
+            )
+            - self.desired_distance
+        ).pow(2).mean(-1) * self.dist_shaping_factor
+        agent.dist_rew = agent.previous_distance_to_agents - distance_to_agents
+        agent.previous_distance_to_agents = distance_to_agents
+
+        return agent.dist_rew
+    
+    def collision_reward(self, agent: Agent):
+        is_first = self.world.policy_agents.index(agent) == 0
+
+        if is_first:
+
+            # Avoid collisions with each other
+            if self.collision_reward != 0:
+                for a in self.world.policy_agents:
+                    a.collision_rew[:] = 0
+
+                for i, a in enumerate(self.world.agents):
+                    for j, b in enumerate(self.world.agents):
+                        if j <= i:
+                            continue
+                        collision = (
+                            self.world.get_distance(a, b) <= self.min_collision_distance
+                        )
+                        if a.action_script is None:
+                            a.collision_rew[collision] += self.collision_reward
+                        if b.action_script is None:
+                            b.collision_rew[collision] += self.collision_reward
 
     def observation(self, agent: Agent):
         return torch.cat(
             [
                 agent.state.pos,
                 agent.state.vel,
-                #self.world.landmarks[0].state.pos
+                self.world.landmarks[0].state.pos,
+                #agent.state.pos - self.world.landmarks[0].state.pos,
             ],
             dim=-1,
         )
 
-    
     def done(self):
         return torch.zeros(self.world.batch_dim, device=self.world.device, dtype=torch.bool)
 

@@ -8,7 +8,7 @@ import time
 from train_simple_nn import SimpleNN
 
 
-model = GCN(input_dim=5, hidden_dim=32, output_dim=9)# Crea un'istanza del modello
+model = GCN(input_dim=7, hidden_dim=32, output_dim=9)# Crea un'istanza del modello
 model.load_state_dict(torch.load('gcn_model.pth'))# Carica i pesi del modello
 
 
