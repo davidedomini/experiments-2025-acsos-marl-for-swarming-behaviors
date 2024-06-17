@@ -12,7 +12,7 @@ from vmas.simulator.utils import Color, X, Y, ScenarioUtils
 
 class CustomScenario(BaseScenario):
     def make_world(self, batch_dim: int, device: torch.device, **kwargs):    
-        self.pos_shaping_factor = kwargs.get("pos_shaping_factor", 10)
+        self.pos_shaping_factor = kwargs.get("pos_shaping_factor", 10.0)
         self.agent_radius = kwargs.get("agent_radius", 0.1)
         self.n_agents = kwargs.get("n_agents", 1)
 
@@ -71,7 +71,7 @@ class CustomScenario(BaseScenario):
             (num_agents, 2), device=self.world.device, dtype=torch.float32
         ) + position_range[0]
 
-        random_agent_positions = torch.tensor([[0.1, 0.1], [0.2, 0.2], [0.3, 0.3]])
+        random_agent_positions = torch.tensor([[0.0, 0.0], [-0.1, 0.0], [0.1, 0.0], [0.0, -0.1], [0.0, 0.1]])
 
         # Setta le posizioni degli agenti alle posizioni casuali generate
         for i, agent in enumerate(self.world.agents):
@@ -81,7 +81,7 @@ class CustomScenario(BaseScenario):
             )
 
             if env_index is None:
-                agent.pos_shaping = (
+                agent.previous_distance_to_goal = (
                     torch.linalg.vector_norm(
                         agent.state.pos - agent.goal.state.pos,
                         dim=1,
@@ -89,7 +89,7 @@ class CustomScenario(BaseScenario):
                     * self.pos_shaping_factor
                 )
             else:
-                agent.pos_shaping[env_index] = (
+                agent.previous_distance_to_goal[env_index] = (
                     torch.linalg.vector_norm(
                         agent.state.pos[env_index] - agent.goal.state.pos[env_index]
                     )
@@ -122,14 +122,14 @@ class CustomScenario(BaseScenario):
         )
         agent.on_goal = agent.distance_to_goal < agent.goal.shape.radius 
 
-        pos_shaping = agent.distance_to_goal * self.pos_shaping_factor #Distanza attuale tra l'agente e il goal pesandola per shaping_factor
-        agent.pos_rew = agent.pos_shaping - pos_shaping #Reward in base alla differenza tra la distanza precedente e quella attuale
-        agent.pos_shaping = pos_shaping #Salva la distanza per la prossima iterazione
+        shaped_distance_to_goal = agent.distance_to_goal * self.pos_shaping_factor #Distanza attuale tra l'agente e il goal pesandola per shaping_factor
+        agent.pos_rew = agent.previous_distance_to_goal - shaped_distance_to_goal #Reward in base alla differenza tra la distanza precedente e quella attuale
+        agent.previous_distance_to_goal = shaped_distance_to_goal #Salva la distanza per la prossima iterazione
 
         reward = agent.pos_rew
 
         if agent.on_goal:
-            reward = reward + 10
+            reward = reward + 20
 
         return reward
 

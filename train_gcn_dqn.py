@@ -16,7 +16,7 @@ env = make_env(
     wrapper=None,
     max_steps=200,
     dict_spaces=True,
-    n_agents=3,
+    n_agents=5,
 )
 
 class GraphReplayBuffer:
@@ -48,13 +48,22 @@ class GCN(torch.nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
         super(GCN, self).__init__()
         self.conv1 = GATConv(input_dim, hidden_dim, add_self_loops=False, bias=True)
-        self.lin1 = torch.nn.Linear(hidden_dim, output_dim)
+        self.conv2 = GATConv(hidden_dim, hidden_dim, add_self_loops=False, bias=True)
+        self.conv3 = GATConv(hidden_dim, hidden_dim, add_self_loops=False, bias=True)
+        self.lin1 = torch.nn.Linear(hidden_dim, hidden_dim)
+        self.lin2 = torch.nn.Linear(hidden_dim, output_dim)
 
     def forward(self, data):
         x, edge_index = data.x, data.edge_index
         x = self.conv1(x, edge_index)
         x = torch.relu(x)
+        x = self.conv2(x, edge_index)
+        x = torch.relu(x)
+        x = self.conv3(x, edge_index)
+        x = torch.relu(x)
         x = self.lin1(x)
+        x = torch.relu(x)
+        x = self.lin2(x)
         return x
 
 def create_graph_from_observations(observations):

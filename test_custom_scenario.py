@@ -75,10 +75,10 @@ def use_vmas_env(
                 actions.update({agent.name: action})
             else:
                 actions.append(action)
-        print(obs_dict)
+
         actions = {'agent0': torch.tensor([[1]]), 'agent1': torch.tensor([[8]])}
+        print("agent0 ang_vel: ", env.agents[0].state.rot)
         obs_dict, rews, dones, info = env.step(actions)
-        print(obs_dict)
 
         if render:
             frame = env.render(

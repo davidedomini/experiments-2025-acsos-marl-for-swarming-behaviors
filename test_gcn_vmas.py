@@ -27,7 +27,7 @@ env = make_env(
     dict_spaces=True,
     wrapper=None,
     seed=None,
-    n_agents=3,
+    n_agents=5,
 )
 
 render = True
