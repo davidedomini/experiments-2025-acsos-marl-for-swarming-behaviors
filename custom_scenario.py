@@ -20,11 +20,11 @@ class CustomScenario(BaseScenario):
         self.min_distance_between_entities = self.agent_radius * 2 + 0.05
         self.world_semidim = 1
 
-        self.collision_reward = -0.1
+        self.obstacle_collision_reward = -10
+        self.agent_collision_reward = -1
         self.desired_distance = 0.15
         self.min_collision_distance = 0.005
         self.collective_reward = 0
-        self.collective_goal_reached_reward = 0
 
         world = World(batch_dim, device)
 
@@ -34,6 +34,16 @@ class CustomScenario(BaseScenario):
             color=Color.BLACK,
         )
         world.add_landmark(goal)
+
+        for i in range(1):
+
+            obstacle = Landmark(
+                name="obstacle",
+                collide=True,
+                color=Color.RED
+            )
+
+            world.add_landmark(obstacle)
         
         for i in range(self.n_agents):
             agent = Agent(
@@ -55,37 +65,47 @@ class CustomScenario(BaseScenario):
     def reset_world_at(self, env_index: int = None):
         # Definisce i limiti dell'area in cui posizionare gli agenti
         position_range = (-1, 1)
-        
-        num_agents = len(self.world.agents)
-        num_landmarks = len(self.world.landmarks)
 
-        """ # Genera posizioni casuali per i landmarks
-        random_landmark_positions = (position_range[1] - position_range[0]) * torch.rand(
-            (num_landmarks, 2), device=self.world.device, dtype=torch.float32
-        ) + position_range[0]"""
-
-        # Setta le posizioni dei landmarks alle posizioni casuali generate
-        for i, landmark in enumerate(self.world.landmarks):
-            landmark.set_pos(
-                torch.tensor([-0.8, 0.8]),#random_landmark_positions[i],
-                batch_index=env_index,
-            ) 
-
-        # Genera posizioni casuali all'interno dell'area definita
-        """ random_agent_positions = (position_range[1] - position_range[0]) * torch.rand(
-            (num_agents, 2), device=self.world.device, dtype=torch.float32
-        ) + position_range[0] """
-
-        central_position = (position_range[1] - position_range[0]) * torch.rand(
+        # Genera posizioni casuali per i landmarks
+        random_landmark_position = (position_range[1] - position_range[0]) * torch.rand(
             (1, 2), device=self.world.device, dtype=torch.float32
         ) + position_range[0]
+
+        # Setta le posizioni dei landmarks alle posizioni casuali generate
+        self.world.landmarks[0].set_pos(
+            torch.tensor([-0.8, 0.8]), #random_landmark_position, 
+            batch_index=env_index,
+        ) 
+
+        self.world.landmarks[1].set_pos(
+            torch.tensor([-0.1, 0.1]),
+            batch_index=env_index,
+        ) 
+
+        """ self.world.landmarks[2].set_pos(
+            torch.tensor([0.1, 0.5]), 
+            batch_index=env_index,
+        ) """ 
+
+        # Genera posizioni casuali all'interno dell'area definita
+
+        central_position = torch.tensor([[0.6, -0.6]])
+
+        """ central_position = (position_range[1] - position_range[0]) * torch.rand(
+            (1, 2), device=self.world.device, dtype=torch.float32
+        ) + position_range[0] """
 
         offsets = torch.tensor([
             [-0.15, 0.0],  # sinistra
             [0.15, 0.0],   # destra
             [0.0, 0.15],   # sopra
-            [0.0, -0.15]   # sotto
+            [0.0, -0.15],   # sotto
         ], device='cpu', dtype=torch.float32)
+
+        """ [-0.15, -0.15],
+            [0.15, -0.15],
+            [0.15, 0.15],
+            [-0.15, 0.15], """
 
         # Calcolare le posizioni degli altri agenti
         surrounding_positions = central_position + offsets
@@ -149,18 +169,12 @@ class CustomScenario(BaseScenario):
 
     def reward(self, agent):
         if agent == self.world.agents[0]:
-            self.collective_goal_reached_reward = 0
             self.collective_reward = 0
 
-            collective_goal_reached = True
             for a in self.world.agents:
-                self.collective_reward += self.distance_to_goal_reward(a) + self.distance_to_agents_reward(a)
-                collective_goal_reached = collective_goal_reached and a.on_goal
+                self.collective_reward += self.distance_to_goal_reward(a) + self.distance_to_agents_reward(a) + self.agent_avoidance_reward(a) + self.obstacle_avoidance_reward(a)
 
-            if collective_goal_reached:
-                self.collective_goal_reached_reward = 100
-
-        return self.collective_reward + self.collective_goal_reached_reward
+        return self.collective_reward
     
     def distance_to_goal_reward(self, agent: Agent):
         agent.distance_to_goal = torch.linalg.vector_norm(
@@ -197,27 +211,23 @@ class CustomScenario(BaseScenario):
 
         return agent.dist_rew
     
-    def collision_reward(self, agent: Agent):
-        is_first = self.world.policy_agents.index(agent) == 0
+    def obstacle_avoidance_reward(self, agent: Agent):
 
-        if is_first:
+        for i in range (1,2):
+            if self.world.get_distance(agent, self.world.landmarks[i]) <= self.min_collision_distance :
+                return self.obstacle_collision_reward
 
-            # Avoid collisions with each other
-            if self.collision_reward != 0:
-                for a in self.world.policy_agents:
-                    a.collision_rew[:] = 0
+        return 0
+    
+    def agent_avoidance_reward(self, agent: Agent):
+        reward = 0
 
-                for i, a in enumerate(self.world.agents):
-                    for j, b in enumerate(self.world.agents):
-                        if j <= i:
-                            continue
-                        collision = (
-                            self.world.get_distance(a, b) <= self.min_collision_distance
-                        )
-                        if a.action_script is None:
-                            a.collision_rew[collision] += self.collision_reward
-                        if b.action_script is None:
-                            b.collision_rew[collision] += self.collision_reward
+        reward = sum(
+            self.agent_collision_reward for other_agent in self.world.agents
+            if agent.name != other_agent.name and self.world.get_distance(agent, other_agent) <= self.min_collision_distance
+        )
+
+        return reward
 
     def observation(self, agent: Agent):
         return torch.cat(
