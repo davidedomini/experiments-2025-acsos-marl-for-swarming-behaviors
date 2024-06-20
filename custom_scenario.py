@@ -63,10 +63,10 @@ class CustomScenario(BaseScenario):
         return world
 
     def reset_world_at(self, env_index: int = None):
-        # Limits of the area
+        """# Limits of the area
         position_range = (-1, 1)
 
-        """ # Generate random position for the common goal
+        # Generate random position for the common goal
         random_landmark_position = (position_range[1] - position_range[0]) * torch.rand(
             (1, 2), device=self.world.device, dtype=torch.float32
         ) + position_range[0] """
@@ -155,7 +155,7 @@ class CustomScenario(BaseScenario):
             self.collective_reward = 0
 
             for a in self.world.agents:
-                self.collective_reward += self.distance_to_goal_reward(a) + self.distance_to_agents_reward(a) + self.agent_avoidance_reward(a) + self.obstacle_avoidance_reward(a)
+                self.collective_reward += self.distance_to_goal_reward(a) + self.distance_to_agents_reward(a) + self.agent_avoidance_reward(a) #+ self.obstacle_avoidance_reward(a)
 
         return self.collective_reward
     
@@ -217,8 +217,7 @@ class CustomScenario(BaseScenario):
             [
                 agent.state.pos,
                 agent.state.vel,
-                self.world.landmarks[0].state.pos,
-                #agent.state.pos - self.world.landmarks[0].state.pos,
+                agent.goal.state.pos,
             ],
             dim=-1,
         )
