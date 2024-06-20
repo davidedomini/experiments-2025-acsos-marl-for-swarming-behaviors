@@ -2,6 +2,7 @@ from typing import Callable, Dict
 
 import torch
 import random
+import math
 from torch import Tensor
 from vmas import render_interactively
 from vmas.simulator.core import Agent, Landmark, Sphere, World, Entity
@@ -12,7 +13,7 @@ from vmas.simulator.utils import Color, X, Y, ScenarioUtils
 
 class CustomScenario(BaseScenario):
     def make_world(self, batch_dim: int, device: torch.device, **kwargs):    
-        self.pos_shaping_factor = kwargs.get("pos_shaping_factor", 10.0)
+        self.pos_shaping_factor = kwargs.get("pos_shaping_factor", 100.0)
         self.dist_shaping_factor = kwargs.get("dist_shaping_factor", 10.0)
         self.agent_radius = kwargs.get("agent_radius", 0.1)
         self.n_agents = kwargs.get("n_agents", 1)
@@ -26,14 +27,20 @@ class CustomScenario(BaseScenario):
         self.min_collision_distance = 0.005
         self.collective_reward = 0
 
-        world = World(batch_dim, device)
 
-        goal = Landmark(
-            name=f"goal",
-            collide=False,
-            color=Color.BLACK,
-        )
-        world.add_landmark(goal)
+        self.center = torch.tensor([0.0, 0.0])
+        self.radius = 0.3
+
+        cx, cy = self.center
+
+        angles = torch.linspace(0, 2 * math.pi, self.n_agents + 1)[:-1]
+
+        xs = cx + self.radius * torch.cos(angles)
+        ys = cy + self.radius * torch.sin(angles)
+
+        self.goal_positions = torch.stack([xs, ys], dim=1)
+
+        world = World(batch_dim, device)
 
         for i in range(0):
 
@@ -46,6 +53,13 @@ class CustomScenario(BaseScenario):
             world.add_landmark(obstacle)
         
         for i in range(self.n_agents):
+            goal = Landmark(
+                name=f"goal{i}",
+                collide=False,
+                color=Color.BLACK,
+            )
+            world.add_landmark(goal)
+
             agent = Agent(
                 name=f"agent{i}",
                 collide=True,
@@ -90,7 +104,7 @@ class CustomScenario(BaseScenario):
             batch_index=env_index,
         ) """ 
 
-        central_position = random_position #torch.tensor([[0.6, -0.6]])
+        central_position = torch.tensor([[0.6, -0.6]]) #random_position
 
         offsets = torch.tensor([
             [-0.15, 0.0],  # sx
@@ -125,6 +139,13 @@ class CustomScenario(BaseScenario):
 
         # Set the agents positions
         for i, agent in enumerate(self.world.agents):
+
+            #Set pattern landmark positions
+            self.world.landmarks[i].set_pos(
+                self.goal_positions[i],
+                batch_index=env_index,
+            )
+
             agent.set_pos(
                 all__agents_positions[i],
                 batch_index=env_index,
@@ -155,13 +176,14 @@ class CustomScenario(BaseScenario):
         
 
     def reward(self, agent):
-        if agent == self.world.agents[0]:
+        """ if agent == self.world.agents[0]:
             self.collective_reward = 0
 
             for a in self.world.agents:
                 self.collective_reward += self.distance_to_goal_reward(a) + self.distance_to_agents_reward(a) + self.agent_avoidance_reward(a) #+ self.obstacle_avoidance_reward(a)
 
-        return self.collective_reward
+        return self.collective_reward """
+        return self.distance_to_goal_reward(agent)
     
     def distance_to_goal_reward(self, agent: Agent):
         agent.distance_to_goal = torch.linalg.vector_norm(

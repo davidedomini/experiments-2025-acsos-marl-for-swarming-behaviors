@@ -16,7 +16,7 @@ env = make_env(
     wrapper=None,
     max_steps=200,
     dict_spaces=True,
-    n_agents=5,
+    n_agents=2,
 )
 
 class GraphReplayBuffer:
@@ -179,7 +179,7 @@ def train_model():
         print(f'Episode {episode}, Loss: {average_loss}, Reward: {total_episode_reward}, Epsilon: {epsilon}')
 
     print("Training completed")
-    torch.save(model.state_dict(), 'flocking_model_4.pth')
+    torch.save(model.state_dict(), 'reach_positions.pth')
     print("Model saved successfully!")
 
 if __name__ == "__main__":
