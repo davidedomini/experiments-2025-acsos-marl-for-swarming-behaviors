@@ -179,7 +179,7 @@ def train_model():
         print(f'Episode {episode}, Loss: {average_loss}, Reward: {total_episode_reward}, Epsilon: {epsilon}')
 
     print("Training completed")
-    torch.save(model.state_dict(), 'gcn_model.pth')
+    torch.save(model.state_dict(), 'flocking_model_4.pth')
     print("Model saved successfully!")
 
 if __name__ == "__main__":

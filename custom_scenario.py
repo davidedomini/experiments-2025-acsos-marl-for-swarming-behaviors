@@ -35,7 +35,7 @@ class CustomScenario(BaseScenario):
         )
         world.add_landmark(goal)
 
-        for i in range(1):
+        for i in range(0):
 
             obstacle = Landmark(
                 name="obstacle",
@@ -62,26 +62,27 @@ class CustomScenario(BaseScenario):
 
         return world
 
+
     def reset_world_at(self, env_index: int = None):
-        """# Limits of the area
+        # Limits of the area
         position_range = (-1, 1)
 
-        # Generate random position for the common goal
-        random_landmark_position = (position_range[1] - position_range[0]) * torch.rand(
+        # Generate random position in the map
+        random_position = (position_range[1] - position_range[0]) * torch.rand(
             (1, 2), device=self.world.device, dtype=torch.float32
-        ) + position_range[0] """
+        ) + position_range[0]
 
         # Set fixed/random position for the common goal
         self.world.landmarks[0].set_pos(
-            torch.tensor([-0.8, 0.8]), #random_landmark_position, 
+            torch.tensor([-0.8, 0.8]), #random_position, 
             batch_index=env_index,
         ) 
 
-        # Set the position of the first obstacle
+        """ # Set the position of the first obstacle
         self.world.landmarks[1].set_pos(
             torch.tensor([-0.1, 0.1]),
             batch_index=env_index,
-        ) 
+        )  """
 
         """ # Set the position of the second obstacle
         self.world.landmarks[2].set_pos(
@@ -89,21 +90,24 @@ class CustomScenario(BaseScenario):
             batch_index=env_index,
         ) """ 
 
-        central_position = torch.tensor([[0.6, -0.6]])
-
-        """ central_position = (position_range[1] - position_range[0]) * torch.rand(
-            (1, 2), device=self.world.device, dtype=torch.float32
-        ) + position_range[0] """
+        central_position = random_position #torch.tensor([[0.6, -0.6]])
 
         offsets = torch.tensor([
-            [-0.15, 0.0],  # sinistra
-            [0.15, 0.0],   # destra
-            [0.0, 0.15],   # sopra
-            [0.0, -0.15],   # sotto
-            [-0.15, -0.15],
-            [0.15, -0.15],
-            [0.15, 0.15],
-            [-0.15, 0.15], 
+            [-0.15, 0.0],  # sx
+            [0.15, 0.0],   # dx
+            [0.0, 0.15],   # up
+            [0.0, -0.15],   # down
+            [-0.15, -0.15], #bottom-left
+            [0.15, -0.15], # bottom-right
+            [0.15, 0.15], #up-right
+            [-0.15, 0.15],  #up-left
+            [0.3, 0.0],
+            [0.0, -0.3],
+            [0.3, -0.3],
+            [0.3, 0.15],
+            [0.3, -0.15],
+            [-0.15, -0.3],
+            [-0.3, -0.3],
         ], device='cpu', dtype=torch.float32)
 
         """ [-0.15, -0.15],
