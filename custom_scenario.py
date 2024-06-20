@@ -63,31 +63,31 @@ class CustomScenario(BaseScenario):
         return world
 
     def reset_world_at(self, env_index: int = None):
-        # Definisce i limiti dell'area in cui posizionare gli agenti
+        # Limits of the area
         position_range = (-1, 1)
 
-        # Genera posizioni casuali per i landmarks
+        """ # Generate random position for the common goal
         random_landmark_position = (position_range[1] - position_range[0]) * torch.rand(
             (1, 2), device=self.world.device, dtype=torch.float32
-        ) + position_range[0]
+        ) + position_range[0] """
 
-        # Setta le posizioni dei landmarks alle posizioni casuali generate
+        # Set fixed/random position for the common goal
         self.world.landmarks[0].set_pos(
             torch.tensor([-0.8, 0.8]), #random_landmark_position, 
             batch_index=env_index,
         ) 
 
+        # Set the position of the first obstacle
         self.world.landmarks[1].set_pos(
             torch.tensor([-0.1, 0.1]),
             batch_index=env_index,
         ) 
 
-        """ self.world.landmarks[2].set_pos(
+        """ # Set the position of the second obstacle
+        self.world.landmarks[2].set_pos(
             torch.tensor([0.1, 0.5]), 
             batch_index=env_index,
         ) """ 
-
-        # Genera posizioni casuali all'interno dell'area definita
 
         central_position = torch.tensor([[0.6, -0.6]])
 
@@ -100,6 +100,10 @@ class CustomScenario(BaseScenario):
             [0.15, 0.0],   # destra
             [0.0, 0.15],   # sopra
             [0.0, -0.15],   # sotto
+            [-0.15, -0.15],
+            [0.15, -0.15],
+            [0.15, 0.15],
+            [-0.15, 0.15], 
         ], device='cpu', dtype=torch.float32)
 
         """ [-0.15, -0.15],
@@ -115,56 +119,35 @@ class CustomScenario(BaseScenario):
 
         #random_agent_positions = torch.tensor([[0.0, 0.0], [-0.1, 0.0], [0.1, 0.0], [0.0, -0.1], [0.0, 0.1]])
 
-        # Setta le posizioni degli agenti alle posizioni casuali generate
+        # Set the agents positions
         for i, agent in enumerate(self.world.agents):
             agent.set_pos(
                 all__agents_positions[i],
                 batch_index=env_index,
             )
 
-            if env_index is None:
-                agent.previous_distance_to_goal = (
-                    torch.linalg.vector_norm(
-                        agent.state.pos - agent.goal.state.pos,
-                        dim=1,
-                    )
-                    * self.pos_shaping_factor
+            agent.previous_distance_to_goal = (
+                torch.linalg.vector_norm(
+                    agent.state.pos - agent.goal.state.pos,
+                    dim=1,
                 )
+                * self.pos_shaping_factor
+            )
 
-                agent.previous_distance_to_agents = (
-                    torch.stack(
-                        [
-                            torch.linalg.vector_norm(
-                                agent.state.pos - a.state.pos, dim=-1
-                            )
-                            for a in self.world.agents
-                            if a != agent
-                        ],
-                        dim=1,
-                    )
-                    - self.desired_distance
-                ).pow(2).mean(-1) * self.dist_shaping_factor
-            else:
-                agent.previous_distance_to_goal[env_index] = (
-                    torch.linalg.vector_norm(
-                        agent.state.pos[env_index] - agent.goal.state.pos[env_index]
-                    )
-                    * self.pos_shaping_factor
+            agent.previous_distance_to_agents = (
+                torch.stack(
+                    [
+                        torch.linalg.vector_norm(
+                            agent.state.pos - a.state.pos, dim=-1
+                        )
+                        for a in self.world.agents
+                        if a != agent
+                    ],
+                    dim=1,
                 )
-
-                agent.previous_distance_to_agents[env_index] = (
-                    torch.stack(
-                        [
-                            torch.linalg.vector_norm(
-                                agent.state.pos[env_index] - a.state.pos[env_index]
-                            )
-                            for a in self.world.agents
-                            if a != agent
-                        ],
-                        dim=0,
-                    )
-                    - self.desired_distance
-                ).pow(2).mean(-1) * self.dist_shaping_factor
+                - self.desired_distance
+            ).pow(2).mean(-1) * self.dist_shaping_factor
+           
         
 
     def reward(self, agent):
