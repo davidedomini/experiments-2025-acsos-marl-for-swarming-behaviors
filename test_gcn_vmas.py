@@ -5,15 +5,10 @@ from custom_scenario import CustomScenario
 from train_gcn_dqn import create_graph_from_observations
 from vmas.simulator.utils import save_video
 import time
-from train_simple_nn import SimpleNN
 
 
 model = GCN(input_dim=7, hidden_dim=32, output_dim=9)# Crea un'istanza del modello
 model.load_state_dict(torch.load('flocking_model_5.pth'))# Carica i pesi del modello
-
-
-""" model = SimpleNN() 
-model.load_state_dict(torch.load('simple_nn_model.pth')) """
 
 model.eval()
 print("Model loaded successfully!")
