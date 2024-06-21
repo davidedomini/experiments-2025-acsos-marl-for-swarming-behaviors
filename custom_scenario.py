@@ -13,7 +13,7 @@ from vmas.simulator.utils import Color, X, Y, ScenarioUtils
 
 class CustomScenario(BaseScenario):
     def make_world(self, batch_dim: int, device: torch.device, **kwargs):    
-        self.pos_shaping_factor = kwargs.get("pos_shaping_factor", 100.0)
+        self.pos_shaping_factor = kwargs.get("pos_shaping_factor", 10.0)
         self.dist_shaping_factor = kwargs.get("dist_shaping_factor", 10.0)
         self.agent_radius = kwargs.get("agent_radius", 0.1)
         self.n_agents = kwargs.get("n_agents", 1)
@@ -51,6 +51,8 @@ class CustomScenario(BaseScenario):
             )
 
             world.add_landmark(obstacle)
+
+        
         
         for i in range(self.n_agents):
             goal = Landmark(
@@ -104,7 +106,7 @@ class CustomScenario(BaseScenario):
             batch_index=env_index,
         ) """ 
 
-        central_position = torch.tensor([[0.6, -0.6]]) #random_position
+        central_position = torch.tensor([[0.6, -0.6]]) #random_position 
 
         offsets = torch.tensor([
             [-0.15, 0.0],  # sx
@@ -147,7 +149,7 @@ class CustomScenario(BaseScenario):
             )
 
             agent.set_pos(
-                all__agents_positions[i],
+                all__agents_positions[i],#random_position[i],
                 batch_index=env_index,
             )
 
@@ -180,7 +182,7 @@ class CustomScenario(BaseScenario):
             self.collective_reward = 0
 
             for a in self.world.agents:
-                self.collective_reward += self.distance_to_goal_reward(a) + self.distance_to_agents_reward(a) + self.agent_avoidance_reward(a) #+ self.obstacle_avoidance_reward(a)
+                self.collective_reward += self.distance_to_goal_reward(a) + self.agent_avoidance_reward(a) # + self.distance_to_agents_reward(a) + self.obstacle_avoidance_reward(a)
 
         return self.collective_reward """
         return self.distance_to_goal_reward(agent)
@@ -199,7 +201,7 @@ class CustomScenario(BaseScenario):
         reward = agent.pos_rew
 
         if agent.on_goal:
-            reward = reward + 20
+            reward = reward + 50
 
         return reward 
     
