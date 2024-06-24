@@ -14,6 +14,7 @@ from ray.rllib.env import MultiAgentEnv
 from ray.tune import register_env
 from typing import Dict
 import numpy as np
+from test_gcn_rllib import use_vmas_env
 
 class GNNModel(torch.nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
@@ -111,7 +112,33 @@ if not ray.is_initialized():
 
 register_env("custom_vmas_env", lambda config: env_creator(config))
 
-trainer = PPOTrainer(config=config) 
-for _ in range(100):
-    result = trainer.train()
-    print(result)
+def train():
+    """ res = tune.run(
+        PPOTrainer,
+        stop={"training_iteration": 20},
+        checkpoint_freq=1,
+        keep_checkpoints_num=2,
+        checkpoint_at_end=True,
+        checkpoint_score_attr="episode_reward_mean",
+        callbacks=[
+        ],
+        config=config,
+        metric="episode_reward_mean",  # Specifica la metrica
+        mode="max"  # Specifica la modalità di ottimizzazione
+    ) """
+
+    trainer = PPOTrainer(config=config)
+    #trainer.restore(res.best_checkpoint)
+    trainer.restore("/home/filippo/ray_results/PPO_2024-06-24_12-36-18/PPO_custom_vmas_env_970c6_00000_0_2024-06-24_12-36-18/checkpoint_000020")
+
+    return trainer
+
+
+if __name__ == "__main__":
+    trainer = train()
+    
+    use_vmas_env(
+        render=True,
+        save_render=False,
+        trainer=trainer,
+    )
