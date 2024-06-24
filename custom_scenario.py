@@ -52,15 +52,15 @@ class CustomScenario(BaseScenario):
 
             world.add_landmark(obstacle)
 
-        
-        
-        for i in range(self.n_agents):
-            goal = Landmark(
-                name=f"goal{i}",
+        goal = Landmark(
+                name=f"goal",
                 collide=False,
                 color=Color.BLACK,
             )
-            world.add_landmark(goal)
+        world.add_landmark(goal)
+        
+        for i in range(self.n_agents):
+            
 
             agent = Agent(
                 name=f"agent{i}",
@@ -142,11 +142,11 @@ class CustomScenario(BaseScenario):
         # Set the agents positions
         for i, agent in enumerate(self.world.agents):
 
-            #Set pattern landmark positions
+            """ #Set pattern landmark positions
             self.world.landmarks[i].set_pos(
                 self.goal_positions[i],
                 batch_index=env_index,
-            )
+            ) """
 
             agent.set_pos(
                 all__agents_positions[i],#random_position[i],
@@ -178,14 +178,14 @@ class CustomScenario(BaseScenario):
         
 
     def reward(self, agent):
-        """ if agent == self.world.agents[0]:
+        if agent == self.world.agents[0]:
             self.collective_reward = 0
 
             for a in self.world.agents:
-                self.collective_reward += self.distance_to_goal_reward(a) + self.agent_avoidance_reward(a) # + self.distance_to_agents_reward(a) + self.obstacle_avoidance_reward(a)
+                self.collective_reward += self.distance_to_goal_reward(a) #+ self.agent_avoidance_reward(a) + self.distance_to_agents_reward(a) + self.obstacle_avoidance_reward(a)
 
-        return self.collective_reward """
-        return self.distance_to_goal_reward(agent)
+        return self.collective_reward
+        #return self.distance_to_goal_reward(agent)
     
     def distance_to_goal_reward(self, agent: Agent):
         agent.distance_to_goal = torch.linalg.vector_norm(

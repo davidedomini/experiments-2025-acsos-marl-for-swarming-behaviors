@@ -69,10 +69,3 @@ def use_vmas_env(
 
     if render and save_render:
         save_video(scenario_name, frame_list, fps=1 / env.scenario.world.dt)
-
-
-if __name__ == "__main__":
-    use_vmas_env(
-        render=True,
-        save_render=False,
-    )

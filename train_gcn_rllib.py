@@ -15,18 +15,29 @@ from ray.tune import register_env
 from typing import Dict
 import numpy as np
 from test_gcn_rllib import use_vmas_env
+from torch_geometric.nn import GATConv
 
 class GNNModel(torch.nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
         super(GNNModel, self).__init__()
-        self.conv1 = GCNConv(input_dim, hidden_dim)
-        self.conv2 = GCNConv(hidden_dim, output_dim)
+        self.conv1 = GATConv(input_dim, hidden_dim, add_self_loops=False, bias=True)
+        self.conv2 = GATConv(hidden_dim, hidden_dim, add_self_loops=False, bias=True)
+        self.conv3 = GATConv(hidden_dim, hidden_dim, add_self_loops=False, bias=True)
+        self.lin1 = torch.nn.Linear(hidden_dim, hidden_dim)
+        self.lin2 = torch.nn.Linear(hidden_dim, output_dim)
 
     def forward(self, data):
         x, edge_index = data.x, data.edge_index
-        x = F.relu(self.conv1(x, edge_index))
+        x = self.conv1(x, edge_index)
+        x = torch.relu(x)
         x = self.conv2(x, edge_index)
-        return F.log_softmax(x, dim=1)
+        x = torch.relu(x)
+        x = self.conv3(x, edge_index)
+        x = torch.relu(x)
+        x = self.lin1(x)
+        x = torch.relu(x)
+        x = self.lin2(x)
+        return x
 
 def build_graph(observations):
     #node_features = [observations[f'agent{i}'][0] for i in range(len(observations))]
@@ -115,7 +126,7 @@ register_env("custom_vmas_env", lambda config: env_creator(config))
 def train():
     """ res = tune.run(
         PPOTrainer,
-        stop={"training_iteration": 20},
+        stop={"training_iteration": 100},
         checkpoint_freq=1,
         keep_checkpoints_num=2,
         checkpoint_at_end=True,
@@ -129,7 +140,7 @@ def train():
 
     trainer = PPOTrainer(config=config)
     #trainer.restore(res.best_checkpoint)
-    trainer.restore("/home/filippo/ray_results/PPO_2024-06-24_12-36-18/PPO_custom_vmas_env_970c6_00000_0_2024-06-24_12-36-18/checkpoint_000020")
+    trainer.restore("/home/filippo/ray_results/PPO_2024-06-24_14-24-56/PPO_custom_vmas_env_c4003_00000_0_2024-06-24_14-24-56/checkpoint_000100")
 
     return trainer
 
