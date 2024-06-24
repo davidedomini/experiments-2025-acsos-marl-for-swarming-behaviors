@@ -28,50 +28,46 @@ class GNNModel(torch.nn.Module):
         return F.log_softmax(x, dim=1)
 
 def build_graph(observations):
-    # Assume observations is a dict with agent ids as keys
-    batch_size = list(observations.values())[0].size(0)
-    num_agents = len(observations)
+    #node_features = [observations[f'agent{i}'][0] for i in range(len(observations))]
+    node_features = [observations[i][0] for i in range(len(observations))]
+    node_features = torch.stack(node_features, dim=0).squeeze(dim=1)
+
+    # DEBUG: osservazioni prese come input e node_features create
+    #print(observations)
+    #print(node_features.shape)
     
-    # Concatenate observations along the batch dimension
-    node_features = torch.cat([obs.view(batch_size, -1) for obs in observations.values()], dim=0)
-    
-    # Create edge indices for a fully connected graph among agents
+    num_agents = node_features.size(0)
     edge_index = []
     for i in range(num_agents):
-        for j in range(num_agents):
+        for j in range(i + 1, num_agents):
             edge_index.append([i, j])
+            edge_index.append([j, i])
+    edge_index.append([0,0])
     edge_index = torch.tensor(edge_index, dtype=torch.long).t().contiguous()
-    
-    # Create Data objects for each batch instance
-    data_list = []
-    for i in range(batch_size):
-        data = Data(x=node_features[i * num_agents:(i + 1) * num_agents], edge_index=edge_index)
-        data_list.append(data)
-    
-    # Use Batch from torch_geometric to handle a batch of graphs
-    graph_data = Batch.from_data_list(data_list)
+    graph_data = Data(x=node_features, edge_index=edge_index)
     return graph_data
 
 
 class CustomGNNModel(TorchModelV2, torch.nn.Module):
-    def __init__(self, obs_space, action_space, num_outputs, model_config, name):
-        
+    def __init__(self, obs_space, action_space, num_outputs, model_config, name):        
         TorchModelV2.__init__(self, obs_space, action_space, num_outputs, model_config, name)
         torch.nn.Module.__init__(self)
 
         input_dim = 6 # Number of features per agent (6)
         hidden_dim = model_config.get("custom_model_config", {}).get("hidden_dim", 32)
-        output_dim = 9  # Should match the number of actions (9)
+        output_dim = 9 # Should match the number of actions (9)
 
         self.gnn = GNNModel(input_dim, hidden_dim, output_dim)
 
     def forward(self, input_dict, state, seq_lens):
         agent_states = input_dict["obs"]
-        print("AGENT STATES SHAPE: ", {k: v.shape for k, v in agent_states.items()})
+        #print("AGENT STATES SHAPE: ", {k: v.shape for k, v in agent_states.items()})
 
         graph_data = build_graph(agent_states)
         logits = self.gnn(graph_data)
-        print("LOGITS SHAPE: ", logits.shape)  # Log the shape of logits
+        #print("LOGITS SHAPE: ", logits.shape)  # Log the shape of logits
+        logits = logits.view(1,-1)
+        #print("LOGITS RESHAPE: ", logits.shape)  # Log the shape of logits
 
         return logits, state
 
@@ -104,7 +100,7 @@ def env_creator(config: Dict):
         continuous_actions=False,
         wrapper=Wrapper.RLLIB,
         max_steps=200,
-        dict_spaces=True,
+        dict_spaces=False,
         n_agents=2,
     )
     obs = env.env.reset()
