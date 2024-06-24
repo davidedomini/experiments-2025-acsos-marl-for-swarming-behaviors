@@ -77,7 +77,7 @@ def create_graph_from_observations(observations):
 
     # DEBUG: osservazioni prese come input e node_features create
     #print(observations)
-    #print(node_features)
+    #print(node_features.shape)
     
     num_agents = node_features.size(0)
     edge_index = []
@@ -155,7 +155,7 @@ def train_model():
             model.eval()
             logits = model(graph_data)
             # DEBUG: logits restituiti in output dalla GCN
-            #print(f'Logits: {logits}')  
+            #print(f'Logits shape: {logits.shape}')  
 
             if random.random() < epsilon:
                 actions = torch.tensor([random.randint(0, num_actions - 1) for _ in range(len(env.agents))])
