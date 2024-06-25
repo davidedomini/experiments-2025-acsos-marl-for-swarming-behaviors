@@ -81,7 +81,7 @@ class CustomScenario(BaseScenario):
         
         
         for i in range(self.n_agents):
-            
+
             goal = Landmark(
                 name=f"goal{i}",
                 collide=False,
@@ -115,11 +115,11 @@ class CustomScenario(BaseScenario):
             (1, 2), device=self.world.device, dtype=torch.float32
         ) + position_range[0]
 
-        # Set fixed/random position for the common goal
+        """ # Set fixed/random position for the common goal
         self.world.landmarks[0].set_pos(
             torch.tensor([-0.8, 0.8]), #random_position, 
             batch_index=env_index,
-        ) 
+        )  """
 
         """ # Set the position of the first obstacle
         self.world.landmarks[1].set_pos(
@@ -133,8 +133,33 @@ class CustomScenario(BaseScenario):
             batch_index=env_index,
         ) """ 
 
-        central_position = torch.tensor([0.6, -0.6]) #random_position 
-        all__agents_positions = self.generate_grid(central_position, 5, 0.15)
+        central_position = torch.tensor([[0.6, -0.6]])  #random_position
+
+        offsets = torch.tensor([
+            [-0.15, 0.0],  # sx
+            [0.15, 0.0],   # dx
+            [0.0, 0.15],   # up
+            [0.0, -0.15],   # down
+            [-0.15, -0.15], #bottom-left
+            [0.15, -0.15], # bottom-right
+            [0.15, 0.15], #up-right
+            [-0.15, 0.15],  #up-left
+            [0.3, 0.0],
+            [0.0, -0.3],
+            [0.3, -0.3],
+            [0.3, 0.15],
+            [0.3, -0.15],
+            [-0.15, -0.3],
+            [-0.3, -0.3],
+        ], device='cpu', dtype=torch.float32)
+
+        # Calcolare le posizioni degli altri agenti
+        surrounding_positions = central_position + offsets
+
+        # Concatenare la posizione centrale con le posizioni circostanti
+        all__agents_positions = torch.cat((central_position, surrounding_positions), dim=0)
+
+        #all__agents_positions = self.generate_grid(central_position, 4, 0.15)
 
         # Set the agents positions
         for i, agent in enumerate(self.world.agents):
@@ -175,14 +200,14 @@ class CustomScenario(BaseScenario):
         
 
     def reward(self, agent):
-        """ if agent == self.world.agents[0]:
+        if agent == self.world.agents[0]:
             self.collective_reward = 0
 
             for a in self.world.agents:
                 self.collective_reward += self.distance_to_goal_reward(a) #+ self.agent_avoidance_reward(a) + self.distance_to_agents_reward(a) + self.obstacle_avoidance_reward(a)
 
-        return self.collective_reward """
-        return self.distance_to_goal_reward(agent)
+        return self.collective_reward
+        #return self.distance_to_goal_reward(agent)
     
     def distance_to_goal_reward(self, agent: Agent):
         agent.distance_to_goal = torch.linalg.vector_norm(

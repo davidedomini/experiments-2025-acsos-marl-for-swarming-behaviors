@@ -138,7 +138,7 @@ config = {
         }
     },
     "env_config": {
-        "num_agents": 2,
+        "num_agents": 5,
     },
     "model": {
         "custom_model": "custom_gnn_model",
@@ -147,9 +147,14 @@ config = {
         },
     },
     "framework": "torch",
-    "num_workers": 1,
+    "num_workers": 4,
+    
 }
-
+""" "train_batch_size": 60000,
+    "rollout_fragment_length": 125,
+    "sgd_minibatch_size": 4096,
+    "num_sgd_iter": 40,
+    "num_envs_per_worker": 64, """
 """ config = {
     "seed": 0,
     "framework": "torch",
@@ -207,7 +212,6 @@ def env_creator(config: Dict):
         dict_spaces=False,
         n_agents=2,
     )
-    obs = env.env.reset()
     return env
 
 if not ray.is_initialized():
@@ -231,10 +235,12 @@ def train():
     trainer = PPOTrainer(config=config)
     #trainer.restore(res.best_checkpoint)
 
-    #DIFFERENT POS: /home/filippo/ray_results/PPO_2024-06-25_12-38-45/PPO_custom_vmas_env_192f7_00000_0_2024-06-25_12-38-45/checkpoint_000099
+    #DIFFERENT POS 2 (DIFFERENT REWARDS): /home/filippo/ray_results/PPO_2024-06-25_12-38-45/PPO_custom_vmas_env_192f7_00000_0_2024-06-25_12-38-45/checkpoint_000099
     #GO TO 2: /home/filippo/ray_results/PPO_2024-06-25_11-12-21/PPO_custom_vmas_env_07218_00000_0_2024-06-25_11-12-21/checkpoint_000100
+    #FLOCKING: /home/filippo/ray_results/PPO_2024-06-25_13-51-06/PPO_custom_vmas_env_34938_00000_0_2024-06-25_13-51-06/checkpoint_000100
+    #DIFFERENT POS 2 (SAME REWARDS): /home/filippo/ray_results/PPO_2024-06-25_15-03-56/PPO_custom_vmas_env_61732_00000_0_2024-06-25_15-03-56/checkpoint_000100
 
-    trainer.restore("/home/filippo/ray_results/PPO_2024-06-25_12-38-45/PPO_custom_vmas_env_192f7_00000_0_2024-06-25_12-38-45/checkpoint_000099")
+    trainer.restore("/home/filippo/ray_results/PPO_2024-06-25_15-03-56/PPO_custom_vmas_env_61732_00000_0_2024-06-25_15-03-56/checkpoint_000100")
 
     return trainer
 

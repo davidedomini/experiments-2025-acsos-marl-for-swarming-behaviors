@@ -109,7 +109,7 @@ if __name__ == "__main__":
                 "continuous_actions": False,
                 "max_steps": 100,
                 "scenario_config": {
-                    "n_agents": 25,
+                    "n_agents": 5,
                 },
             }
     )
