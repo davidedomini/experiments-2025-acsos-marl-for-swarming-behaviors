@@ -39,52 +39,52 @@ num_gpus_per_worker = (
 )
 
 config = {
-            "seed": 0,
-            "framework": "torch",
-            "env": scenario_name,
-            "kl_coeff": 0.01,
-            "kl_target": 0.01,
-            "lambda": 0.9,
-            "clip_param": 0.2,
-            "vf_loss_coeff": 1,
-            "vf_clip_param": float("inf"),
-            "entropy_coeff": 0,
-            "train_batch_size": 60000,
-            "rollout_fragment_length": 125,
-            "sgd_minibatch_size": 4096,
-            "num_sgd_iter": 40,
-            "num_gpus": num_gpus,
-            "num_workers": num_workers,
-            "num_gpus_per_worker": num_gpus_per_worker,
-            "num_envs_per_worker": num_vectorized_envs,
-            "ignore_worker_failures": True,
-            "lr": 5e-5,
-            "gamma": 0.99,
-            "use_gae": True,
-            "use_critic": True,
-            "batch_mode": "truncate_episodes",
-            "env_config": {
-                "device": vmas_device,
-                "num_envs": num_vectorized_envs,
-                "scenario_name": scenario_name,
-                "continuous_actions": continuous_actions,
-                "max_steps": max_steps,
-                # Scenario specific variables
-                "scenario_config": {
-                    "n_agents": n_agents,
-                },
-            },
-            "evaluation_interval": 5,
-            "evaluation_duration": 1,
-            "evaluation_num_workers": 1,
-            "evaluation_parallel_to_training": True,
-            "evaluation_config": {
-                "num_envs_per_worker": num_vectorized_envs,
-                "env_config": {
-                    "num_envs": num_vectorized_envs,
-                }
-            }
+    "seed": 0,
+    "framework": "torch",
+    "env": scenario_name,
+    "kl_coeff": 0.01,
+    "kl_target": 0.01,
+    "lambda": 0.9,
+    "clip_param": 0.2,
+    "vf_loss_coeff": 1,
+    "vf_clip_param": float("inf"),
+    "entropy_coeff": 0,
+    "train_batch_size": 60000,
+    "rollout_fragment_length": 125,
+    "sgd_minibatch_size": 4096,
+    "num_sgd_iter": 40,
+    "num_gpus": num_gpus,
+    "num_workers": num_workers,
+    "num_gpus_per_worker": num_gpus_per_worker,
+    "num_envs_per_worker": num_vectorized_envs,
+    "ignore_worker_failures": True,
+    "lr": 5e-5,
+    "gamma": 0.99,
+    "use_gae": True,
+    "use_critic": True,
+    "batch_mode": "truncate_episodes",
+    "env_config": {
+        "device": vmas_device,
+        "num_envs": num_vectorized_envs,
+        "scenario_name": scenario_name,
+        "continuous_actions": continuous_actions,
+        "max_steps": max_steps,
+        # Scenario specific variables
+        "scenario_config": {
+            "n_agents": n_agents,
+        },
+    },
+    "evaluation_interval": 5,
+    "evaluation_duration": 1,
+    "evaluation_num_workers": 1,
+    "evaluation_parallel_to_training": True,
+    "evaluation_config": {
+        "num_envs_per_worker": num_vectorized_envs,
+        "env_config": {
+            "num_envs": num_vectorized_envs,
         }
+    }
+}
 
 
 def env_creator(config: Dict):

@@ -76,8 +76,6 @@ def use_vmas_env(
             else:
                 actions.append(action)
 
-        actions = {'agent0': torch.tensor([[1]]), 'agent1': torch.tensor([[8]])}
-        print("agent0 ang_vel: ", env.agents[0].state.rot)
         obs_dict, rews, dones, info = env.step(actions)
 
         if render:
@@ -111,7 +109,7 @@ if __name__ == "__main__":
                 "continuous_actions": False,
                 "max_steps": 100,
                 "scenario_config": {
-                    "n_agents": 2,
+                    "n_agents": 25,
                 },
             }
     )

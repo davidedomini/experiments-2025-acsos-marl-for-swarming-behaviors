@@ -12,6 +12,32 @@ from vmas.simulator.sensors import Lidar
 from vmas.simulator.utils import Color, X, Y, ScenarioUtils
 
 class CustomScenario(BaseScenario):
+
+    def generate_grid(self, center: torch.Tensor, grid_size: int, distance: float):
+        """
+        Generate a grid of positions around a center point.
+
+        Parameters:
+        center (tensor): Coordinates of the center point (x, y).
+        grid_size (int): The size of the grid (e.g., 3 for a 3x3 grid).
+        distance (float): The distance between each position in the grid.
+
+        Returns:
+        torch.Tensor: A tensor containing the positions in the grid.
+        """
+        x_center, y_center = center
+        half_size = grid_size // 2
+        
+        # Generate grid points
+        grid = []
+        for i in range(-half_size, half_size + 1):
+            for j in range(-half_size, half_size + 1):
+                x = x_center + i * distance
+                y = y_center + j * distance
+                grid.append([x, y])
+        
+        return torch.tensor(grid)
+
     def make_world(self, batch_dim: int, device: torch.device, **kwargs):    
         self.pos_shaping_factor = kwargs.get("pos_shaping_factor", 10.0)
         self.dist_shaping_factor = kwargs.get("dist_shaping_factor", 10.0)
@@ -52,15 +78,16 @@ class CustomScenario(BaseScenario):
 
             world.add_landmark(obstacle)
 
-        goal = Landmark(
-                name=f"goal",
-                collide=False,
-                color=Color.BLACK,
-            )
-        world.add_landmark(goal)
+        
         
         for i in range(self.n_agents):
             
+            goal = Landmark(
+                name=f"goal{i}",
+                collide=False,
+                color=Color.BLACK,
+            )
+            world.add_landmark(goal)
 
             agent = Agent(
                 name=f"agent{i}",
@@ -106,47 +133,17 @@ class CustomScenario(BaseScenario):
             batch_index=env_index,
         ) """ 
 
-        central_position = torch.tensor([[0.6, -0.6]]) #random_position 
-
-        offsets = torch.tensor([
-            [-0.15, 0.0],  # sx
-            [0.15, 0.0],   # dx
-            [0.0, 0.15],   # up
-            [0.0, -0.15],   # down
-            [-0.15, -0.15], #bottom-left
-            [0.15, -0.15], # bottom-right
-            [0.15, 0.15], #up-right
-            [-0.15, 0.15],  #up-left
-            [0.3, 0.0],
-            [0.0, -0.3],
-            [0.3, -0.3],
-            [0.3, 0.15],
-            [0.3, -0.15],
-            [-0.15, -0.3],
-            [-0.3, -0.3],
-        ], device='cpu', dtype=torch.float32)
-
-        """ [-0.15, -0.15],
-            [0.15, -0.15],
-            [0.15, 0.15],
-            [-0.15, 0.15], """
-
-        # Calcolare le posizioni degli altri agenti
-        surrounding_positions = central_position + offsets
-
-        # Concatenare la posizione centrale con le posizioni circostanti
-        all__agents_positions = torch.cat((central_position, surrounding_positions), dim=0)
-
-        #random_agent_positions = torch.tensor([[0.0, 0.0], [-0.1, 0.0], [0.1, 0.0], [0.0, -0.1], [0.0, 0.1]])
+        central_position = torch.tensor([0.6, -0.6]) #random_position 
+        all__agents_positions = self.generate_grid(central_position, 5, 0.15)
 
         # Set the agents positions
         for i, agent in enumerate(self.world.agents):
 
-            """ #Set pattern landmark positions
+            #Set pattern landmark positions
             self.world.landmarks[i].set_pos(
                 self.goal_positions[i],
                 batch_index=env_index,
-            ) """
+            )
 
             agent.set_pos(
                 all__agents_positions[i],#random_position[i],
@@ -178,14 +175,14 @@ class CustomScenario(BaseScenario):
         
 
     def reward(self, agent):
-        if agent == self.world.agents[0]:
+        """ if agent == self.world.agents[0]:
             self.collective_reward = 0
 
             for a in self.world.agents:
                 self.collective_reward += self.distance_to_goal_reward(a) #+ self.agent_avoidance_reward(a) + self.distance_to_agents_reward(a) + self.obstacle_avoidance_reward(a)
 
-        return self.collective_reward
-        #return self.distance_to_goal_reward(agent)
+        return self.collective_reward """
+        return self.distance_to_goal_reward(agent)
     
     def distance_to_goal_reward(self, agent: Agent):
         agent.distance_to_goal = torch.linalg.vector_norm(

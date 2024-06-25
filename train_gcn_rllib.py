@@ -15,6 +15,15 @@ from ray.tune import register_env
 from typing import Dict
 import numpy as np
 from test_gcn_rllib import use_vmas_env
+import os
+
+RLLIB_NUM_GPUS = int(os.environ.get("RLLIB_NUM_GPUS", "0"))
+num_gpus = 0.001 if RLLIB_NUM_GPUS > 0 else 0  # Driver GPU
+num_workers = 6
+vmas_device = "cpu"  # or cuda
+num_gpus_per_worker = (
+    (RLLIB_NUM_GPUS - num_gpus) / (num_workers + 1) if vmas_device == "cuda" else 0
+)
 
 class GNNModel(torch.nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
@@ -103,7 +112,31 @@ class CustomGNNModel(TorchModelV2, torch.nn.Module):
 ModelCatalog.register_custom_model("custom_gnn_model", CustomGNNModel)
 
 config = {
+    "seed": 0,
+    "framework": "torch",
     "env": "custom_vmas_env",
+    "kl_coeff": 0.01,
+    "kl_target": 0.01,
+    "lambda": 0.9,
+    "clip_param": 0.2,
+    "vf_loss_coeff": 1,
+    "vf_clip_param": float("inf"),
+    "entropy_coeff": 0,
+    "lr": 5e-5,
+    "gamma": 0.99,
+    "use_gae": True,
+    "use_critic": True,
+    "batch_mode": "truncate_episodes",
+    "evaluation_interval": 5,
+    "evaluation_duration": 1,
+    "evaluation_num_workers": 1,
+    "evaluation_parallel_to_training": True,
+    "evaluation_config": {
+        "num_envs_per_worker": 64,
+        "env_config": {
+            "num_envs": 64,
+        }
+    },
     "env_config": {
         "num_agents": 2,
     },
@@ -116,6 +149,52 @@ config = {
     "framework": "torch",
     "num_workers": 1,
 }
+
+""" config = {
+    "seed": 0,
+    "framework": "torch",
+    "env": "custom_vmas_env",
+    "kl_coeff": 0.01,
+    "kl_target": 0.01,
+    "lambda": 0.9,
+    "clip_param": 0.2,
+    "vf_loss_coeff": 1,
+    "vf_clip_param": float("inf"),
+    "entropy_coeff": 0,
+    "train_batch_size": 60000,
+    "rollout_fragment_length": 125,
+    "sgd_minibatch_size": 4096,
+    "num_sgd_iter": 40,
+    "num_gpus": num_gpus,
+    "num_workers": num_workers,
+    "num_gpus_per_worker": num_gpus_per_worker,
+    "num_envs_per_worker": 64,
+    "ignore_worker_failures": True,
+    "lr": 5e-5,
+    "gamma": 0.99,
+    "use_gae": True,
+    "use_critic": True,
+    "batch_mode": "truncate_episodes",
+    "evaluation_interval": 5,
+    "evaluation_duration": 1,
+    "evaluation_num_workers": 1,
+    "evaluation_parallel_to_training": True,
+    "model": {
+        "custom_model": "custom_gnn_model",
+        "custom_model_config": {
+            "hidden_dim": 32,
+        },
+    },
+    "env_config": {
+        "num_agents": 2,
+    },
+    "evaluation_config": {
+        "num_envs_per_worker": 64,
+        "env_config": {
+            "num_envs": 64,
+        }
+    }
+} """
 
 def env_creator(config: Dict):
     env = make_env(
@@ -151,7 +230,11 @@ def train():
 
     trainer = PPOTrainer(config=config)
     #trainer.restore(res.best_checkpoint)
-    trainer.restore("/home/filippo/ray_results/PPO_2024-06-25_11-12-21/PPO_custom_vmas_env_07218_00000_0_2024-06-25_11-12-21/checkpoint_000100")
+
+    #DIFFERENT POS: /home/filippo/ray_results/PPO_2024-06-25_12-38-45/PPO_custom_vmas_env_192f7_00000_0_2024-06-25_12-38-45/checkpoint_000099
+    #GO TO 2: /home/filippo/ray_results/PPO_2024-06-25_11-12-21/PPO_custom_vmas_env_07218_00000_0_2024-06-25_11-12-21/checkpoint_000100
+
+    trainer.restore("/home/filippo/ray_results/PPO_2024-06-25_12-38-45/PPO_custom_vmas_env_192f7_00000_0_2024-06-25_12-38-45/checkpoint_000099")
 
     return trainer
 
