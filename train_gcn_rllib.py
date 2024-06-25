@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 from gym.spaces import Discrete
-from torch_geometric.nn import GCNConv, global_mean_pool
+from torch_geometric.nn import GATConv
 from torch_geometric.data import Data, Batch
 from ray.rllib.models.torch.torch_modelv2 import TorchModelV2
 from ray.rllib.models import ModelCatalog
@@ -15,7 +15,6 @@ from ray.tune import register_env
 from typing import Dict
 import numpy as np
 from test_gcn_rllib import use_vmas_env
-from torch_geometric.nn import GATConv
 
 class GNNModel(torch.nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
@@ -40,52 +39,66 @@ class GNNModel(torch.nn.Module):
         return x
 
 def build_graph(observations):
-    #node_features = [observations[f'agent{i}'][0] for i in range(len(observations))]
-    node_features = [observations[i][0] for i in range(len(observations))]
-    node_features = torch.stack(node_features, dim=0).squeeze(dim=1)
+    # Input observations: Tensor of shape [num_agents, batch_size, num_features]
+    num_agents, batch_size, num_features = observations.shape
 
-    # DEBUG: osservazioni prese come input e node_features create
-    #print(observations)
-    #print(node_features.shape)
-    
-    num_agents = node_features.size(0)
+    #print("BATCH_SIZE: ", batch_size, " NUM_AGENTS: ", num_agents, " NUM_FEATURES: ", num_features)
+
+    # Reshape to create node features
+    # Node features shape: [batch_size * num_agents, num_features]
+    node_features = observations.permute(1, 0, 2).reshape(batch_size * num_agents, num_features)
+
+    #print("NODE_FEATURES SHAPE: ", node_features.shape)
+
+    # Create edge index
     edge_index = []
-    for i in range(num_agents):
-        for j in range(i + 1, num_agents):
-            edge_index.append([i, j])
-            edge_index.append([j, i])
-    edge_index.append([0,0])
+    for b in range(batch_size):
+        for i in range(num_agents):
+            for j in range(num_agents):
+                if i != j:  # Ensure no self-loops
+                    edge_index.append([b * num_agents + i, b * num_agents + j])
     edge_index = torch.tensor(edge_index, dtype=torch.long).t().contiguous()
+
     graph_data = Data(x=node_features, edge_index=edge_index)
     return graph_data
 
-
 class CustomGNNModel(TorchModelV2, torch.nn.Module):
-    def __init__(self, obs_space, action_space, num_outputs, model_config, name):        
+    def __init__(self, obs_space, action_space, num_outputs, model_config, name):
         TorchModelV2.__init__(self, obs_space, action_space, num_outputs, model_config, name)
         torch.nn.Module.__init__(self)
 
-        input_dim = 6 # Number of features per agent (6)
+        input_dim = 6  # Number of features per agent (6)
         hidden_dim = model_config.get("custom_model_config", {}).get("hidden_dim", 32)
-        output_dim = 9 # Should match the number of actions (9)
+        output_dim = 9  # Should match the number of actions (9)
 
         self.gnn = GNNModel(input_dim, hidden_dim, output_dim)
 
     def forward(self, input_dict, state, seq_lens):
-        agent_states = input_dict["obs"]
-        #print("AGENT STATES SHAPE: ", {k: v.shape for k, v in agent_states.items()})
+        agent_states = torch.stack(input_dict["obs"])
+
+        #print("AGENT_STATES SHAPE: ", agent_states.shape)
+
+        num_agents, batch_size, _ = agent_states.shape
 
         graph_data = build_graph(agent_states)
         logits = self.gnn(graph_data)
-        #print("LOGITS SHAPE: ", logits.shape)  # Log the shape of logits
-        logits = logits.view(1,-1)
-        #print("LOGITS RESHAPE: ", logits.shape)  # Log the shape of logits
+
+        #print("LOGITS BEFORE: ", logits.shape)
+
+        # Reshape logits to [batch_size, num_agents, output_dim]
+        logits = logits.view(batch_size, num_agents, -1)
+
+        #print("LOGITS MID: ", logits.shape)
+
+        # Flatten logits to [batch_size, num_agents * output_dim]
+        logits = logits.view(batch_size, -1)
+
+        #print("LOGITS AFTER: ", logits.shape)
 
         return logits, state
 
     def value_function(self):
         return torch.zeros(1)
-
 
 ModelCatalog.register_custom_model("custom_gnn_model", CustomGNNModel)
 
@@ -131,8 +144,6 @@ def train():
         keep_checkpoints_num=2,
         checkpoint_at_end=True,
         checkpoint_score_attr="episode_reward_mean",
-        callbacks=[
-        ],
         config=config,
         metric="episode_reward_mean",  # Specifica la metrica
         mode="max"  # Specifica la modalità di ottimizzazione
@@ -140,10 +151,9 @@ def train():
 
     trainer = PPOTrainer(config=config)
     #trainer.restore(res.best_checkpoint)
-    trainer.restore("/home/filippo/ray_results/PPO_2024-06-24_14-24-56/PPO_custom_vmas_env_c4003_00000_0_2024-06-24_14-24-56/checkpoint_000100")
+    trainer.restore("/home/filippo/ray_results/PPO_2024-06-25_11-12-21/PPO_custom_vmas_env_07218_00000_0_2024-06-25_11-12-21/checkpoint_000100")
 
     return trainer
-
 
 if __name__ == "__main__":
     trainer = train()
