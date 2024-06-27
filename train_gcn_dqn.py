@@ -16,7 +16,7 @@ env = make_env(
     wrapper=None,
     max_steps=200,
     dict_spaces=True,
-    n_agents=2,
+    n_agents=9,
 )
 
 class GraphReplayBuffer:
@@ -93,8 +93,8 @@ def create_graph_from_observations(observations):
 
 def train_model():
     num_actions = 9  
-    model = GCN(input_dim=7, hidden_dim=32, output_dim=num_actions) 
-    target_model = GCN(input_dim=7, hidden_dim=32, output_dim=num_actions)
+    model = GCN(input_dim=5, hidden_dim=32, output_dim=num_actions) 
+    target_model = GCN(input_dim=5, hidden_dim=32, output_dim=num_actions)
     target_model.load_state_dict(model.state_dict())
     optimizer = torch.optim.RMSprop(model.parameters(), lr=0.0001)
     replay = GraphReplayBuffer(6000)
@@ -179,7 +179,7 @@ def train_model():
         print(f'Episode {episode}, Loss: {average_loss}, Reward: {total_episode_reward}, Epsilon: {epsilon}')
 
     print("Training completed")
-    torch.save(model.state_dict(), 'reach_different_positions_2.pth')
+    torch.save(model.state_dict(), 'cohesion_collision.pth')
     print("Model saved successfully!")
 
 if __name__ == "__main__":

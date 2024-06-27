@@ -7,8 +7,8 @@ from vmas.simulator.utils import save_video
 import time
 
 
-model = GCN(input_dim=7, hidden_dim=32, output_dim=9)# Crea un'istanza del modello
-model.load_state_dict(torch.load('go_to_position_5.pth'))# Carica i pesi del modello
+model = GCN(input_dim=5, hidden_dim=32, output_dim=9)# Crea un'istanza del modello
+model.load_state_dict(torch.load('cohesion_collision.pth'))# Carica i pesi del modello
 
 model.eval()
 print("Model loaded successfully!")
@@ -22,7 +22,7 @@ env = make_env(
     dict_spaces=True,
     wrapper=None,
     seed=None,
-    n_agents=2,
+    n_agents=9,
 )
 
 render = True

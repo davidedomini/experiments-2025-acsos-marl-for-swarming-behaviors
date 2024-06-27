@@ -240,7 +240,7 @@ def train():
     #FLOCKING: /home/filippo/ray_results/PPO_2024-06-25_13-51-06/PPO_custom_vmas_env_34938_00000_0_2024-06-25_13-51-06/checkpoint_000100
     #DIFFERENT POS 2 (SAME REWARDS): /home/filippo/ray_results/PPO_2024-06-25_15-03-56/PPO_custom_vmas_env_61732_00000_0_2024-06-25_15-03-56/checkpoint_000100
 
-    trainer.restore("/home/filippo/ray_results/PPO_2024-06-25_15-03-56/PPO_custom_vmas_env_61732_00000_0_2024-06-25_15-03-56/checkpoint_000100")
+    trainer.restore("/home/filippo/ray_results/PPO_2024-06-25_11-12-21/PPO_custom_vmas_env_07218_00000_0_2024-06-25_11-12-21/checkpoint_000100")
 
     return trainer
 
