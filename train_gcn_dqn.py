@@ -98,20 +98,6 @@ def train_model():
     target_model.load_state_dict(model.state_dict())
     optimizer = torch.optim.RMSprop(model.parameters(), lr=0.0001)
     replay = GraphReplayBuffer(6000)
-    global_reward_mean = 0.0
-    global_reward_var = 0.0
-    global_reward_count = 0
-
-    def update_global_reward_stats(rewards):
-        nonlocal global_reward_mean, global_reward_var, global_reward_count
-        global_reward_count += rewards.size(0)
-        delta = rewards - global_reward_mean
-        global_reward_mean += delta.sum() / global_reward_count
-        delta2 = rewards - global_reward_mean
-        global_reward_var += delta.mul(delta2).sum()
-    
-        # DEBUG: aggiornamento incrementale della media e varianza dei reward per la normalizzazione
-        #print(f"Updated stats - Mean: {global_reward_mean}, Var: {global_reward_var}, Count: {global_reward_count}")
 
     def train_step_dqn(replay_buffer, batch_size, model, target_model, ticks, gamma=0.99, update_target_every=10):
         if(len(replay_buffer.buffer) < batch_size):
@@ -166,7 +152,7 @@ def train_model():
 
             rewards_tensor = torch.tensor([rewards[f'agent{i}'] for i in range(len(env.agents))], dtype=torch.float)
             replay.push(graph_data, actions, rewards_tensor, create_graph_from_observations(newObservations))
-            update_global_reward_stats(rewards_tensor)
+            
             writer.add_scalar('Reward', rewards_tensor.sum().item(), ticks)
             loss = train_step_dqn(replay, 128, model, target_model, ticks, update_target_every=10)
             episode_loss += loss

@@ -144,15 +144,15 @@ class CustomScenario(BaseScenario):
         #all__agents_positions = self.generate_grid(central_position, 4, 0.15) """
 
         all__agents_positions = torch.tensor([
-            [-5.0, -5.0], 
-            [0.0, -5.0],  
-            [0.0, 5.0], 
+            [-1.0, -1.0], 
+            [0.0, -1.0],  
+            [0.0, 1.0], 
             [0.0, 0.0],   
-            [5.0, 5.0],
-            [5.0, -5.0], 
-            [-5.0, 5.0], 
-            [5.0, 0.0],  
-            [-5.0, 0.0],
+            [1.0, 1.0],
+            [1.0, -1.0], 
+            [-1.0, 1.0], 
+            [1.0, 0.0],  
+            [-1.0, 0.0],
         ], device='cpu', dtype=torch.float32)
 
         # Set the agents positions
