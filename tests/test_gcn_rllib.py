@@ -1,5 +1,10 @@
 import random
 import time
+import sys
+import os
+
+scenarios_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src', 'scenarios'))
+sys.path.insert(0, scenarios_dir)
 
 import torch
 from vmas import make_env, Wrapper

@@ -1,14 +1,22 @@
-from train_gcn_dqn import GCN
+import sys
+import os
+
+scenarios_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src', 'scenarios'))
+training_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src', 'training'))
+sys.path.insert(0, scenarios_dir)
+sys.path.insert(1, training_dir)
+
 import torch
 from vmas import make_env
 from custom_scenario import CustomScenario
-from train_gcn_dqn import create_graph_from_observations
+from train_gcn_dqn import create_graph_from_observations, GCN
 from vmas.simulator.utils import save_video
 import time
 
+models_dir = "../models/"
 
 model = GCN(input_dim=5, hidden_dim=32, output_dim=9)# Crea un'istanza del modello
-model.load_state_dict(torch.load('cohesion_collision.pth'))# Carica i pesi del modello
+model.load_state_dict(torch.load(models_dir + 'cohesion_collision.pth'))# Carica i pesi del modello
 
 model.eval()
 print("Model loaded successfully!")

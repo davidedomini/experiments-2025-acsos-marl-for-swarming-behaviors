@@ -1,3 +1,9 @@
+import sys
+import os
+
+scenarios_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src', 'scenarios'))
+sys.path.insert(0, scenarios_dir)
+
 import torch
 import torch.nn.functional as F
 from torch_geometric.nn import GATConv

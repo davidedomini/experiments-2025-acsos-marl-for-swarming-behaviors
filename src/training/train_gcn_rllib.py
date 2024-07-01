@@ -9,7 +9,7 @@ from ray.rllib.agents.ppo import PPOTrainer
 from ray import tune
 import ray
 from vmas import make_env, Wrapper
-from custom_scenario import CustomScenario
+from src.scenarios.custom_scenario import CustomScenario
 from ray.rllib.env import MultiAgentEnv
 from ray.tune import register_env
 from typing import Dict

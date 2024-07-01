@@ -1,15 +1,19 @@
+import sys
+import os
+
+scenarios_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src', 'scenarios'))
+sys.path.insert(0, scenarios_dir)
+
 import random
 import time
-
 import torch
-
 from vmas import make_env
 from vmas.simulator.core import Agent
 from vmas.simulator.utils import save_video
-from custom_scenario import CustomScenario
 from ray.rllib.algorithms.ppo import PPO
 import numpy as np
 from vmas.simulator.environment.rllib import VectorEnvWrapper
+from custom_scenario import CustomScenario
 
 def _get_deterministic_action(agent: Agent, continuous: bool, env):
     if continuous:
