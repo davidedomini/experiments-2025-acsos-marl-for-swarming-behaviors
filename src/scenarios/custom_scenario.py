@@ -97,7 +97,7 @@ class CustomScenario(BaseScenario):
             )
             agent.pos_rew = torch.zeros(batch_dim, device=device)
             agent.collision_rew = agent.pos_rew.clone()
-            #agent.goal = goal
+           # agent.goal = goal
             world.add_agent(agent)
 
         self.pos_rew = torch.zeros(batch_dim, device=device)
