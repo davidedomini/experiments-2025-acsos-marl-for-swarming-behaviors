@@ -86,7 +86,7 @@ class FlockingScenario(BaseScenario):
             (1, 2), device=self.world.device, dtype=torch.float32
         ) + position_range[0]).squeeze()
 
-        all__agents_positions = self.generate_grid(central_random_position, self.n_agents, 0.15)
+        all__agents_positions = self.generate_grid(central_random_position, self.n_agents, self.desired_distance)
 
         for i, agent in enumerate(self.world.agents):
 
