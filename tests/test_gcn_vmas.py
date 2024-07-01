@@ -10,6 +10,7 @@ import torch
 from vmas import make_env
 from custom_scenario import CustomScenario
 from go_to_position_scenario import GoToPositionScenario
+from flocking_scenario import FlockingScenario
 from train_gcn_dqn import create_graph_from_observations, GCN
 from vmas.simulator.utils import save_video
 import time
@@ -17,13 +18,13 @@ import time
 models_dir = "../models/"
 
 model = GCN(input_dim=7, hidden_dim=32, output_dim=9)# Crea un'istanza del modello
-model.load_state_dict(torch.load(models_dir + 'go_to_position_5.pth'))# Carica i pesi del modello
+model.load_state_dict(torch.load(models_dir + 'flocking_model_5.pth'))# Carica i pesi del modello
 
 model.eval()
 print("Model loaded successfully!")
 
 env = make_env(
-    GoToPositionScenario(),
+    FlockingScenario(),
     scenario_name="test_gcn_vmas",
     num_envs=1,
     device="cpu",

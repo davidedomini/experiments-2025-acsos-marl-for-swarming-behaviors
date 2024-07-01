@@ -15,6 +15,7 @@ import numpy as np
 from vmas.simulator.environment.rllib import VectorEnvWrapper
 from custom_scenario import CustomScenario
 from go_to_position_scenario import GoToPositionScenario
+from flocking_scenario import FlockingScenario
 
 def _get_deterministic_action(agent: Agent, continuous: bool, env):
     if continuous:
