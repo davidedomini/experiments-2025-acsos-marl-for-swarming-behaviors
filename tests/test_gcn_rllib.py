@@ -12,7 +12,7 @@ from vmas import make_env, Wrapper
 from vmas import make_env
 from vmas.simulator.core import Agent
 from vmas.simulator.utils import save_video
-from custom_scenario import CustomScenario
+from cohesion_scenario import CohesionScenario
 from ray.rllib.algorithms.ppo import PPO
 import numpy as np
 from vmas.simulator.environment.rllib import VectorEnvWrapper
@@ -30,7 +30,7 @@ def use_vmas_env(
     assert not (save_render and not render), "To save the video you have to render it"
 
     env = make_env(
-        scenario=CustomScenario(),
+        scenario=CohesionScenario(),
         num_envs=1,
         device="cpu",
         continuous_actions=False,

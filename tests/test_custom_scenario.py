@@ -13,7 +13,7 @@ from vmas.simulator.utils import save_video
 from ray.rllib.algorithms.ppo import PPO
 import numpy as np
 from vmas.simulator.environment.rllib import VectorEnvWrapper
-from custom_scenario import CustomScenario
+from cohesion_scenario import CohesionScenario
 from go_to_position_scenario import GoToPositionScenario
 from flocking_scenario import FlockingScenario
 
@@ -42,7 +42,7 @@ def use_vmas_env(
     assert not (save_render and not render), "To save the video you have to render it"
 
     env = make_env(
-        GoToPositionScenario(),
+        CohesionScenario(),
         scenario_name = env_config["scenario_name"],
         num_envs=env_config["num_envs"],
         device=env_config["device"],
@@ -115,7 +115,7 @@ if __name__ == "__main__":
                 "continuous_actions": False,
                 "max_steps": 100,
                 "scenario_config": {
-                    "n_agents": 11,
+                    "n_agents": 9,
                 },
             }
     )

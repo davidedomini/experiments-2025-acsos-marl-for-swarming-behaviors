@@ -8,14 +8,14 @@ import torch
 import torch.nn.functional as F
 from torch_geometric.nn import GATConv
 from vmas import make_env
-from custom_scenario import CustomScenario
+from cohesion_scenario import CohesionScenario
 from torch_geometric.data import Data, Batch
 import torch.utils.tensorboard as tensorboard
 import random
 import torch.nn.utils as utils
 import torch.nn as nn
 env = make_env(
-    scenario=CustomScenario(),
+    scenario=CohesionScenario(),
     num_envs=1,
     device="cpu",
     continuous_actions=False,

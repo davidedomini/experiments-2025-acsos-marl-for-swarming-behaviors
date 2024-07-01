@@ -8,7 +8,7 @@ sys.path.insert(1, training_dir)
 
 import torch
 from vmas import make_env
-from custom_scenario import CustomScenario
+from cohesion_scenario import CohesionScenario
 from go_to_position_scenario import GoToPositionScenario
 from flocking_scenario import FlockingScenario
 from obstacle_avoidance_scenario import ObstacleAvoidanceScenario
@@ -18,14 +18,14 @@ import time
 
 models_dir = "../models/"
 
-model = GCN(input_dim=7, hidden_dim=32, output_dim=9)# Crea un'istanza del modello
-model.load_state_dict(torch.load(models_dir + 'obstacle_model_5.pth'))# Carica i pesi del modello
+model = GCN(input_dim=5, hidden_dim=32, output_dim=9)# Crea un'istanza del modello
+model.load_state_dict(torch.load(models_dir + 'cohesion_collision.pth'))# Carica i pesi del modello
 
 model.eval()
 print("Model loaded successfully!")
 
 env = make_env(
-    ObstacleAvoidanceScenario(),
+    CohesionScenario(),
     scenario_name="test_gcn_vmas",
     num_envs=1,
     device="cpu",
@@ -33,7 +33,7 @@ env = make_env(
     dict_spaces=True,
     wrapper=None,
     seed=None,
-    n_agents=5,
+    n_agents=9,
 )
 
 render = True
