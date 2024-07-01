@@ -1,11 +1,12 @@
 import torch
-from train_gcn_dqn import create_graph_from_observations
+from train_gcn_dqn import DQNTrainer
 import time
 
 class Simulator:
     def __init__(self, env, model):
         self.env = env
         self.model = model
+        self.trainer = DQNTrainer(self.env)
 
     def run_simulation(self):
         init_time = time.time()
@@ -16,7 +17,7 @@ class Simulator:
         for step in range(self.env.max_steps):
             print(f"Step {step+1}")
 
-            graph_data = create_graph_from_observations(observations)
+            graph_data = self.trainer.create_graph_from_observations(observations)
 
             with torch.no_grad():
                 logits = self.model(graph_data)
