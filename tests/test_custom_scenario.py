@@ -84,6 +84,8 @@ def use_vmas_env(
 
         obs_dict, rews, dones, info = env.step(actions)
 
+        print(rews)
+
         if render:
             frame = env.render(
                 mode="rgb_array",

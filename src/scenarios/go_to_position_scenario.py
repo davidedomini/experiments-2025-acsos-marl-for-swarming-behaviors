@@ -10,12 +10,19 @@ class GoToPositionScenario(BaseScenario):
         self.pos_shaping_factor = kwargs.get("pos_shaping_factor", 10.0)
         self.agent_radius = kwargs.get("agent_radius", 0.1)
         self.n_agents = kwargs.get("n_agents", 1)
+        self.seed = kwargs.get("seed", 1)
 
         self.min_distance_between_entities = self.agent_radius * 2 + 0.05
         self.world_semidim = 1
         self.desired_distance = 0.15
 
         self.collective_reward = 0
+
+        print(self.seed)
+
+        torch.manual_seed(self.seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(self.seed)
 
         world = World(batch_dim, device)
 

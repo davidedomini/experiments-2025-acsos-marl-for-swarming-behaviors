@@ -31,10 +31,10 @@ if __name__ == "__main__":
         max_steps= 100
     )
 
-    models_dir = "../models/"
+    models_dir = "models/"
 
     model = GCN(input_dim=7, hidden_dim=32, output_dim=9)
-    model.load_state_dict(torch.load(models_dir + 'go_to_position_5.pth'))
+    model.load_state_dict(torch.load(models_dir + 'go_to_position_eval.pth'))
 
     model.eval()
     print("Go to position model loaded successfully!")
