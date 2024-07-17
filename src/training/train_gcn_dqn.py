@@ -166,11 +166,9 @@ class DQNTrainer:
             self.rewards_buffer.append(total_episode_reward.sum().item())
 
             if (episode + 1) % 10 == 0:
-                
-
-                # Run evaluation after every 10 episodes of training
-                eval_reward = self.evaluate_policy(10)
-                self.episode_rewards.append(eval_reward)
+                mean_reward = sum(self.rewards_buffer) / 10
+                self.episode_rewards.append(mean_reward)
+                self.rewards_buffer = []
 
             print(f'Episode {episode}, Loss: {average_loss}, Reward: {total_episode_reward.sum().item()}, Epsilon: {epsilon}')
 
@@ -199,11 +197,11 @@ class DQNTrainer:
         return total_eval_reward / eval_episodes
 
     def save_metrics_to_csv(self):
-        with open('training_metrics_go_to_position_eval_normalized_2.csv', mode='w', newline='') as file:
+        with open('prova.csv', mode='w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(['Episode', 'Loss', 'Reward'])
+            writer.writerow(['Episode', 'Reward'])
             for i in range(len(self.episode_losses)):
-                writer.writerow([i, self.episode_losses[i], self.episode_rewards[i // 10] if (i + 1) % 10 == 0 else ""])
+                writer.writerow([i, self.episode_rewards[i // 10] if (i + 1) % 10 == 0 else ""])
 
 def set_seed(seed):
     random.seed(seed)
@@ -236,7 +234,7 @@ if __name__ == "__main__":
         'epsilon': 0.99,
         'epsilon_decay' : 0.9,
         'min_epsilon' : 0.05,
-        'episodes' : 400
+        'episodes' : 10
     }
     
     trainer = DQNTrainer(env)
