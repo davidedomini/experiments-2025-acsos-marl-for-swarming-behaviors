@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-file_path = 'training_metrics_go_to_position.csv'
+file_path = 'training_metrics_go_to_position_mean.csv'
 data = pd.read_csv(file_path)
 
 # Plot the trend of the reward

@@ -65,7 +65,6 @@ class GCN(torch.nn.Module):
         return x
 
 class DQNTrainer:
-
     def __init__(self, env):
         self.env = env
         self.n_input = self.env.observation_space['agent0'].shape[0] + 1
@@ -78,6 +77,7 @@ class DQNTrainer:
         self.writer = tensorboard.SummaryWriter()
         self.episode_rewards = []
         self.episode_losses = []
+        self.rewards_buffer = []  # Buffer to store rewards for the last 10 episodes
 
     def create_graph_from_observations(self, observations):
         node_features = [observations[f'agent{i}'] for i in range(len(observations))]
@@ -163,7 +163,13 @@ class DQNTrainer:
             
             average_loss = episode_loss / self.env.max_steps
             self.episode_losses.append(average_loss)
-            self.episode_rewards.append(total_episode_reward.sum().item())
+            self.rewards_buffer.append(total_episode_reward.sum().item())
+
+            if (episode + 1) % 10 == 0:
+                mean_reward = sum(self.rewards_buffer) / 10
+                self.episode_rewards.append(mean_reward)
+                self.rewards_buffer = []
+
             print(f'Episode {episode}, Loss: {average_loss}, Reward: {total_episode_reward.sum().item()}, Epsilon: {epsilon}')
 
         print("Training completed")
@@ -173,11 +179,11 @@ class DQNTrainer:
         self.save_metrics_to_csv()
 
     def save_metrics_to_csv(self):
-        with open('training_metrics_go_to_position.csv', mode='w', newline='') as file:
+        with open('training_metrics_go_to_position_mean.csv', mode='w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(['Episode', 'Loss', 'Reward'])
             for i in range(len(self.episode_losses)):
-                writer.writerow([i, self.episode_losses[i], self.episode_rewards[i]])
+                writer.writerow([i, self.episode_losses[i], self.episode_rewards[i // 10] if (i + 1) % 10 == 0 else ""])
 
 def set_seed(seed):
     random.seed(seed)
@@ -210,7 +216,7 @@ if __name__ == "__main__":
         'epsilon': 0.99,
         'epsilon_decay' : 0.9,
         'min_epsilon' : 0.05,
-        'episodes' : 800
+        'episodes' : 400
     }
     
     trainer = DQNTrainer(env)
