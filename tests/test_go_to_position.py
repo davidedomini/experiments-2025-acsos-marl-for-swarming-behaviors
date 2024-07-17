@@ -34,7 +34,7 @@ if __name__ == "__main__":
     models_dir = "models/"
 
     model = GCN(input_dim=7, hidden_dim=32, output_dim=9)
-    model.load_state_dict(torch.load(models_dir + 'go_to_position_eval_2.pth'))
+    model.load_state_dict(torch.load(models_dir + 'go_to_position_eval_4.pth'))
 
     model.eval()
     print("Go to position model loaded successfully!")
