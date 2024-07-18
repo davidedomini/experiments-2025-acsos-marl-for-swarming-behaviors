@@ -12,6 +12,8 @@ from torch_geometric.nn import GATConv
 from vmas import make_env
 from go_to_position_scenario import GoToPositionScenario
 from cohesion_scenario import CohesionScenario
+from flocking_scenario import FlockingScenario
+from obstacle_avoidance_scenario import ObstacleAvoidanceScenario
 from torch_geometric.data import Data, Batch
 import torch.utils.tensorboard as tensorboard
 import random
@@ -77,7 +79,9 @@ class DQNTrainer:
         self.writer = tensorboard.SummaryWriter()
         self.episode_rewards = []
         self.episode_losses = []
-        self.rewards_buffer = []  # Buffer to store rewards for the last 10 episodes
+        self.episode_obstacle_hits = []
+        self.rewards_buffer = []
+        self.obstacle_hits_buffer = []
 
     def create_graph_from_observations(self, observations):
         node_features = [observations[f'agent{i}'] for i in range(len(observations))]
@@ -129,7 +133,7 @@ class DQNTrainer:
         for episode in range(episodes):  
             observations = self.env.reset()    
             episode_loss = 0
-            total_episode_reward = torch.zeros(self.env.n_agents)  
+            total_episode_reward = torch.zeros(self.env.n_agents)
 
             for _ in range(self.env.max_steps):
                 if episode % 10 == 0:
@@ -154,7 +158,7 @@ class DQNTrainer:
                 self.replay_buffer.push(graph_data, actions, rewards_tensor, self.create_graph_from_observations(newObservations))
                 
                 self.writer.add_scalar('Reward', rewards_tensor.sum().item(), ticks)
-                loss = self.train_step_dqn(128, self.model, self.target_model, ticks, update_target_every=10)
+                loss = self.train_step_dqn(256, self.model, self.target_model, ticks, update_target_every=10)
                 episode_loss += loss
                 total_episode_reward += rewards_tensor
                 observations = newObservations
@@ -163,12 +167,21 @@ class DQNTrainer:
             
             average_loss = episode_loss / self.env.max_steps
             self.episode_losses.append(average_loss)
-            self.rewards_buffer.append(total_episode_reward.sum().item())
+            self.rewards_buffer.append(total_episode_reward[0])
+
+            self.obstacle_hits_buffer.append(self.env.world.obstacle_hits)
 
             if (episode + 1) % 10 == 0:
                 mean_reward = sum(self.rewards_buffer) / 10
                 self.episode_rewards.append(mean_reward)
                 self.rewards_buffer = []
+
+                mean_hits = sum(self.obstacle_hits_buffer) / 10
+                self.episode_obstacle_hits.append(mean_hits)
+                self.obstacle_hits_buffer = []
+                """ # Run evaluation after every 10 episodes of training
+                eval_reward = self.evaluate_policy(10)
+                self.episode_rewards.append(eval_reward) """
 
             print(f'Episode {episode}, Loss: {average_loss}, Reward: {total_episode_reward.sum().item()}, Epsilon: {epsilon}')
 
@@ -182,7 +195,7 @@ class DQNTrainer:
         total_eval_reward = 0
         for _ in range(eval_episodes):
             observations = self.env.reset()
-            episode_reward = 0
+            episode_reward = torch.zeros(self.env.n_agents)
             for _ in range(self.env.max_steps):
                 graph_data = self.create_graph_from_observations(observations)
                 self.model.eval()
@@ -191,17 +204,26 @@ class DQNTrainer:
                 actions = torch.argmax(logits, dim=1)
                 actions_dict = {f'agent{i}': torch.tensor([actions[i].item()]) for i in range(len(self.env.agents))}
                 newObservations, rewards, done, _ = self.env.step(actions_dict)
-                episode_reward += sum(rewards.values())
+                rewards_tensor = torch.tensor([rewards[f'agent{i}'] for i in range(len(self.env.agents))], dtype=torch.float)
+                episode_reward += rewards_tensor
                 observations = newObservations
-            total_eval_reward += episode_reward
+            total_eval_reward += episode_reward[0]
         return total_eval_reward / eval_episodes
 
     def save_metrics_to_csv(self):
-        with open('prova.csv', mode='w', newline='') as file:
+        with open('obstacle_avoidance_stats_4842.csv', mode='w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(['Episode', 'Reward'])
             for i in range(len(self.episode_losses)):
-                writer.writerow([i, self.episode_rewards[i // 10] if (i + 1) % 10 == 0 else ""])
+                if (i + 1) % 10 == 0:
+                    writer.writerow([i, self.episode_rewards[i // 10].item()])
+
+        with open('hits_stats_4842.csv', mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['Episode', 'Hits'])
+            for i in range(len(self.episode_losses)):
+                if (i + 1) % 10 == 0:
+                    writer.writerow([i, self.episode_obstacle_hits[i // 10]])
 
 def set_seed(seed):
     random.seed(seed)
@@ -213,12 +235,12 @@ def set_seed(seed):
 
 if __name__ == "__main__":
 
-    SEED = 47
+    SEED = 4842
 
     set_seed(SEED)
 
     env = make_env(
-        scenario=GoToPositionScenario(),
+        scenario=ObstacleAvoidanceScenario(),
         num_envs=1,
         device="cpu",
         continuous_actions=False,
@@ -230,11 +252,11 @@ if __name__ == "__main__":
     )
 
     config = {
-        'model_name': 'go_to_position_eval',
+        'model_name': 'obstacle_avoidance_eval',
         'epsilon': 0.99,
         'epsilon_decay' : 0.9,
         'min_epsilon' : 0.05,
-        'episodes' : 10
+        'episodes' : 800
     }
     
     trainer = DQNTrainer(env)

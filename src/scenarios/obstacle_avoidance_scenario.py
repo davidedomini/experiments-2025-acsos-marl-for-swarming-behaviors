@@ -90,6 +90,7 @@ class ObstacleAvoidanceScenario(BaseScenario):
 
 
     def reset_world_at(self, env_index: int = None):
+        self.world.obstacle_hits = 0
 
         self.world.landmarks[0].set_pos(torch.tensor([-0.8, 0.8]), batch_index=env_index)
 
@@ -185,6 +186,7 @@ class ObstacleAvoidanceScenario(BaseScenario):
 
         for i in range (1, self.n_obstacles + 1):
             if self.world.get_distance(agent, self.world.landmarks[i]) <= self.min_collision_distance :
+                self.world.obstacle_hits += 1
                 return self.obstacle_collision_reward
 
         return 0

@@ -34,7 +34,7 @@ if __name__ == "__main__":
     models_dir = "models/"
 
     model = GCN(input_dim=7, hidden_dim=32, output_dim=9)
-    model.load_state_dict(torch.load(models_dir + 'obstacle_model_5.pth'))
+    model.load_state_dict(torch.load(models_dir + 'obstacle_avoidance_eval.pth'))
 
     model.eval()
     print("Obstacle Avoidance model loaded successfully!")
