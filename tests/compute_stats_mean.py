@@ -2,7 +2,7 @@ import pandas as pd
 import glob
 
 # Define the path where your CSV files are located
-path = 'stats/flocking/'  # Update this path if needed
+path = ''  # Update this path if needed
 file_pattern = '*.csv'
 files = glob.glob(path + file_pattern)
 

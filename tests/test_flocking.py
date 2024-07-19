@@ -18,6 +18,8 @@ from simulator import Simulator
 
 if __name__ == "__main__":
 
+    SEED = 3108
+
     env = make_env(
         FlockingScenario(),
         scenario_name="test_gcn_vmas",
@@ -26,7 +28,7 @@ if __name__ == "__main__":
         continuous_actions=False,
         dict_spaces=True,
         wrapper=None,
-        seed=None,
+        seed=SEED,
         n_agents=5,
         max_steps= 100
     )

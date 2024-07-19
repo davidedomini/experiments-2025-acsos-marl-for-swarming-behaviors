@@ -18,6 +18,8 @@ from simulator import Simulator
 
 if __name__ == "__main__":
 
+    SEED = 8140
+
     env = make_env(
         GoToPositionScenario(),
         scenario_name="test_gcn_vmas",
@@ -26,15 +28,15 @@ if __name__ == "__main__":
         continuous_actions=False,
         dict_spaces=True,
         wrapper=None,
-        seed=None,
         n_agents=5,
-        max_steps= 100
+        max_steps= 100,
+        seed = SEED
     )
 
     models_dir = "models/"
 
     model = GCN(input_dim=7, hidden_dim=32, output_dim=9)
-    model.load_state_dict(torch.load(models_dir + 'go_to_position_eval_6.pth'))
+    model.load_state_dict(torch.load(models_dir + 'go_to_position_model.pth'))
 
     model.eval()
     print("Go to position model loaded successfully!")

@@ -169,8 +169,6 @@ class DQNTrainer:
             self.episode_losses.append(average_loss)
             self.rewards_buffer.append(total_episode_reward[0])
 
-            self.obstacle_hits_buffer.append(self.env.world.obstacle_hits)
-
             if (episode + 1) % 10 == 0:
                 mean_reward = sum(self.rewards_buffer) / 10
                 self.episode_rewards.append(mean_reward)
@@ -218,13 +216,6 @@ class DQNTrainer:
                 if (i + 1) % 10 == 0:
                     writer.writerow([i, self.episode_rewards[i // 10].item()])
 
-        with open('hits_stats_4842.csv', mode='w', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(['Episode', 'Hits'])
-            for i in range(len(self.episode_losses)):
-                if (i + 1) % 10 == 0:
-                    writer.writerow([i, self.episode_obstacle_hits[i // 10]])
-
 def set_seed(seed):
     random.seed(seed)
     torch.manual_seed(seed)
@@ -240,7 +231,7 @@ if __name__ == "__main__":
     set_seed(SEED)
 
     env = make_env(
-        scenario=ObstacleAvoidanceScenario(),
+        scenario=GoToPositionScenario(),
         num_envs=1,
         device="cpu",
         continuous_actions=False,
@@ -252,7 +243,7 @@ if __name__ == "__main__":
     )
 
     config = {
-        'model_name': 'obstacle_avoidance_eval',
+        'model_name': 'got_to_position_model',
         'epsilon': 0.99,
         'epsilon_decay' : 0.9,
         'min_epsilon' : 0.05,
