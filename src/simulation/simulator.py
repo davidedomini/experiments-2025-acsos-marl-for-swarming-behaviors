@@ -36,11 +36,11 @@ class Simulator:
 
                 total_reward += sum(rewards.values())
 
-                """ frame = self.env.render(
+                frame = self.env.render(
                     mode="rgb_array",
                     agent_index_focus=None,
                     visualize_when_rgb=True,
-                ) """
+                )
 
             total_time = time.time() - init_time
             print(

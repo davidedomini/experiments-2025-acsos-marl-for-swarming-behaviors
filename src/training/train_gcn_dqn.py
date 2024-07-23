@@ -231,7 +231,7 @@ if __name__ == "__main__":
     set_seed(SEED)
 
     env = make_env(
-        scenario=GoToPositionScenario(),
+        scenario=ObstacleAvoidanceScenario(),
         num_envs=1,
         device="cpu",
         continuous_actions=False,
@@ -243,7 +243,7 @@ if __name__ == "__main__":
     )
 
     config = {
-        'model_name': 'got_to_position_model',
+        'model_name': 'obstacle_avoidance_model',
         'epsilon': 0.99,
         'epsilon_decay' : 0.9,
         'min_epsilon' : 0.05,
