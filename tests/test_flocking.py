@@ -28,7 +28,7 @@ if __name__ == "__main__":
         continuous_actions=False,
         dict_spaces=True,
         wrapper=None,
-        seed=SEED,
+        seed=None,
         n_agents=5,
         max_steps= 100
     )
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     models_dir = "models/"
 
     model = GCN(input_dim=7, hidden_dim=32, output_dim=9)
-    model.load_state_dict(torch.load(models_dir + 'flocking_eval.pth'))
+    model.load_state_dict(torch.load(models_dir + 'flocking_model.pth'))
 
     model.eval()
     print("Flocking model loaded successfully!")

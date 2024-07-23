@@ -136,7 +136,7 @@ class DQNTrainer:
             total_episode_reward = torch.zeros(self.env.n_agents)
 
             for _ in range(self.env.max_steps):
-                if episode % 10 == 0:
+                if episode % 100 == 0:
                     self.env.render(
                         mode="rgb_array",
                         agent_index_focus=None,
@@ -158,7 +158,7 @@ class DQNTrainer:
                 self.replay_buffer.push(graph_data, actions, rewards_tensor, self.create_graph_from_observations(newObservations))
                 
                 self.writer.add_scalar('Reward', rewards_tensor.sum().item(), ticks)
-                loss = self.train_step_dqn(256, self.model, self.target_model, ticks, update_target_every=10)
+                loss = self.train_step_dqn(128, self.model, self.target_model, ticks, update_target_every=10)
                 episode_loss += loss
                 total_episode_reward += rewards_tensor
                 observations = newObservations
@@ -231,7 +231,7 @@ if __name__ == "__main__":
     set_seed(SEED)
 
     env = make_env(
-        scenario=ObstacleAvoidanceScenario(),
+        scenario=FlockingScenario(),
         num_envs=1,
         device="cpu",
         continuous_actions=False,
@@ -243,7 +243,7 @@ if __name__ == "__main__":
     )
 
     config = {
-        'model_name': 'obstacle_avoidance_model',
+        'model_name': 'flocking_model_2',
         'epsilon': 0.99,
         'epsilon_decay' : 0.9,
         'min_epsilon' : 0.05,
