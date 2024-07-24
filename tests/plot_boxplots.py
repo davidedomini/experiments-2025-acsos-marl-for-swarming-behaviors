@@ -3,8 +3,8 @@ import seaborn as sns
 import pandas as pd
 
 # Load data
-df_goto_position = pd.read_csv('stats/go_to_position/evaluation/mean.csv')
-df_flocking = pd.read_csv('stats/flocking/evaluation/mean.csv')
+df_goto_position = pd.read_csv('stats/go_to_position/evaluation_5/mean.csv')
+df_flocking = pd.read_csv('stats/flocking/evaluation_5/mean.csv')
 
 # Set Seaborn theme for aesthetics
 sns.set_theme(style="whitegrid")

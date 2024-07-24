@@ -57,7 +57,7 @@ class Simulator:
         self.save_metrics_to_csv()
 
     def save_metrics_to_csv(self):
-        with open('go_to_position_stats_eval_7035.csv', mode='w', newline='') as file:
+        with open('go_to_position_eval_5606.csv', mode='w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(['Episode', 'Reward'])
             for i in range(400):
