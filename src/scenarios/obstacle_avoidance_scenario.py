@@ -186,7 +186,6 @@ class ObstacleAvoidanceScenario(BaseScenario):
 
         for i in range (1, self.n_obstacles + 1):
             if self.world.get_distance(agent, self.world.landmarks[i]) <= self.min_collision_distance :
-                self.world.obstacle_hits += 1
                 return self.obstacle_collision_reward
 
         return 0

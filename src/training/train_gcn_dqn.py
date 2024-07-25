@@ -231,19 +231,19 @@ if __name__ == "__main__":
     set_seed(SEED)
 
     env = make_env(
-        scenario=FlockingScenario(),
+        scenario=ObstacleAvoidanceScenario(),
         num_envs=1,
         device="cpu",
         continuous_actions=False,
         wrapper=None,
         max_steps=100,
         dict_spaces=True,
-        n_agents=12,
+        n_agents=5,
         seed=SEED
     )
 
     config = {
-        'model_name': 'flocking_model_12',
+        'model_name': 'obstacle_model_5_4',
         'epsilon': 0.99,
         'epsilon_decay' : 0.9,
         'min_epsilon' : 0.05,
