@@ -28,7 +28,7 @@ if __name__ == "__main__":
         continuous_actions=False,
         dict_spaces=True,
         wrapper=None,
-        n_agents=12,
+        n_agents=9, #Up to 16
         max_steps= 100,
         seed = SEED
     )
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     models_dir = "models/"
 
     model = GCN(input_dim=7, hidden_dim=32, output_dim=9)
-    model.load_state_dict(torch.load(models_dir + 'go_to_position_model_12.pth'))
+    model.load_state_dict(torch.load(models_dir + 'go_to_position_model_9.pth'))
 
     model.eval()
     print("Go to position model loaded successfully!")
