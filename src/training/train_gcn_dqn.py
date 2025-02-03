@@ -7,6 +7,7 @@ import csv
 import sys
 import os
 import torch
+from pathlib import Path
 import torch.nn.functional as F
 from torch_geometric.nn import GATConv
 from vmas import make_env
@@ -67,8 +68,12 @@ class GCN(torch.nn.Module):
         return x
 
 class DQNTrainer:
-    def __init__(self, env):
+    def __init__(self, env, seed, models_path, stats_path, experiment):
         self.env = env
+        self.seed = seed
+        self.models_path = models_path
+        self.stats_path = stats_path
+        self.experiment = experiment
         self.n_input = self.env.observation_space['agent0'].shape[0] + 1
         self.n_output = env.action_space['agent0'].n
         self.model = GCN(input_dim=self.n_input, hidden_dim=32, output_dim=self.n_output)
@@ -123,7 +128,6 @@ class DQNTrainer:
         return loss.item()
 
     def train_model(self, config):
-        model_name = config["model_name"]
         epsilon = config["epsilon"]
         epsilon_decay = config["epsilon_decay"]
         min_epsilon = config["min_epsilon"]
@@ -184,7 +188,7 @@ class DQNTrainer:
             print(f'Episode {episode}, Loss: {average_loss}, Reward: {total_episode_reward.sum().item()}, Epsilon: {epsilon}')
 
         print("Training completed")
-        torch.save(self.model.state_dict(), model_name + '.pth')
+        torch.save(self.model.state_dict(), f'{self.models_path}/experiment_{self.experiment}-seed_{self.seed}.pth')
         print("Model saved successfully!")
 
         self.save_metrics_to_csv()
@@ -209,7 +213,7 @@ class DQNTrainer:
         return total_eval_reward / eval_episodes
 
     def save_metrics_to_csv(self):
-        with open('obstacle_avoidance_stats_4842.csv', mode='w', newline='') as file:
+        with open(f'{self.stats_path}/experiment_{self.experiment}-seed_{self.seed}.csv', mode='w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(['Episode', 'Reward'])
             for i in range(len(self.episode_losses)):
@@ -224,31 +228,50 @@ def set_seed(seed):
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
+def get_scenario(experiment_name):
+    if experiment_name == 'GoTo':
+        return GoToPositionScenario()
+    elif experiment_name == 'Flocking':
+        return FlockingScenario()
+    elif experiment_name == 'ObstacleAvoidance':
+        return ObstacleAvoidanceScenario()
+    else:
+        raise Exception('Scenario not supported! Please check :)')
+
+
 if __name__ == "__main__":
 
-    SEED = 4842
-
-    set_seed(SEED)
-
-    env = make_env(
-        scenario=ObstacleAvoidanceScenario(),
-        num_envs=1,
-        device="cpu",
-        continuous_actions=False,
-        wrapper=None,
-        max_steps=100,
-        dict_spaces=True,
-        n_agents=5,
-        seed=SEED
-    )
-
+    max_seed = 10
+    models_path = 'models/'
+    stats_path = 'stats/'
+    experiments = ['GoTo', 'Flocking', 'ObstacleAvoidance']
+    # device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = 'cpu'
+    print(f'Device: {device}')
+    data_output_directory = Path(stats_path)
+    data_output_directory.mkdir(parents=True, exist_ok=True)
+    models_output_directory = Path(models_path)
+    models_output_directory.mkdir(parents=True, exist_ok=True)
     config = {
-        'model_name': 'obstacle_model_5_4',
         'epsilon': 0.99,
         'epsilon_decay' : 0.9,
         'min_epsilon' : 0.05,
         'episodes' : 800
     }
-    
-    trainer = DQNTrainer(env)
-    trainer.train_model(config)
+    for seed in range(max_seed):
+        set_seed(seed)
+        for experiment in experiments:
+            print(f'Running seed {seed} experiment {experiment}')
+            env = make_env(
+                scenario=get_scenario(experiment),
+                num_envs=1,
+                device=device,
+                continuous_actions=False,
+                wrapper=None,
+                max_steps=100,
+                dict_spaces=True,
+                n_agents=5,
+                seed=seed
+            )
+            trainer = DQNTrainer(env, seed, models_path, stats_path, experiment)
+            trainer.train_model(config)
