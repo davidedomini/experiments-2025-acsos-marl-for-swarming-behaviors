@@ -1,10 +1,10 @@
 torch==2.3.0
 torch_geometric==2.5.3
 vmas==1.4.0
-ray==2.23.0
 gymnasium
 dm_tree
 pyarrow
 pandas
 typer
 scikit-image
+tensorboard
