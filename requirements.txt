@@ -1,4 +1,4 @@
-torch==2.3.0
+torch==2.6.0
 torch_geometric==2.5.3
 vmas==1.4.0
 gymnasium
