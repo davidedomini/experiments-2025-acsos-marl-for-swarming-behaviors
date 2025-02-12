@@ -20,6 +20,7 @@ import torch.utils.tensorboard as tensorboard
 import random
 import torch.nn.utils as utils
 import torch.nn as nn
+import numpy as np
 
 class GraphReplayBuffer:
 
@@ -79,7 +80,8 @@ class DQNTrainer:
         self.model = GCN(input_dim=self.n_input, hidden_dim=32, output_dim=self.n_output)
         self.target_model = GCN(input_dim=self.n_input, hidden_dim=32, output_dim=self.n_output)
         self.target_model.load_state_dict(self.model.state_dict())
-        self.optimizer = torch.optim.RMSprop(self.model.parameters(), lr=0.0001)
+        # self.optimizer = torch.optim.RMSprop(self.model.parameters(), lr=0.0001)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), 0.0001)
         self.replay_buffer = GraphReplayBuffer(6000)
         self.writer = tensorboard.SummaryWriter()
         self.episode_rewards = []
@@ -115,11 +117,11 @@ class DQNTrainer:
 
         values = model(obs).gather(1, actions.unsqueeze(1))
         nextValues = target_model(nextObs).max(dim=1)[0].detach()
-        targetValues = rewards + gamma * nextValues
-        loss = nn.SmoothL1Loss()(values, targetValues.unsqueeze(1))
+        targetValues = rewards + (gamma * nextValues)
+        loss = nn.MSELoss()(values, targetValues.unsqueeze(1))
         self.optimizer.zero_grad()
         loss.backward()
-        torch.nn.utils.clip_grad_value_(model.parameters(), 1)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
         self.optimizer.step()
             
         if ticks % update_target_every == 0:
@@ -128,11 +130,13 @@ class DQNTrainer:
         return loss.item()
 
     def train_model(self, config):
-        epsilon = config["epsilon"]
+        initial_epsilon = config["epsilon"]
         epsilon_decay = config["epsilon_decay"]
         min_epsilon = config["min_epsilon"]
         episodes = config["episodes"]
         ticks = 0
+
+        epsilon = initial_epsilon
 
         for episode in range(episodes):  
             observations = self.env.reset()    
@@ -140,12 +144,12 @@ class DQNTrainer:
             total_episode_reward = torch.zeros(self.env.n_agents)
 
             for _ in range(self.env.max_steps):
-                if episode % 100 == 0:
-                    self.env.render(
-                        mode="rgb_array",
-                        agent_index_focus=None,
-                        visualize_when_rgb=True,
-                    )
+                # if episode % 100 == 0:
+                #     self.env.render(
+                #         mode="rgb_array",
+                #         agent_index_focus=None,
+                #         visualize_when_rgb=True,
+                #     )
                 ticks += 1
                 graph_data = self.create_graph_from_observations(observations)
                 self.model.eval()
@@ -162,13 +166,13 @@ class DQNTrainer:
                 self.replay_buffer.push(graph_data, actions, rewards_tensor, self.create_graph_from_observations(newObservations))
                 
                 self.writer.add_scalar('Reward', rewards_tensor.sum().item(), ticks)
-                loss = self.train_step_dqn(128, self.model, self.target_model, ticks, update_target_every=10)
+                loss = self.train_step_dqn(32, self.model, self.target_model, ticks, update_target_every=50)
                 episode_loss += loss
                 total_episode_reward += rewards_tensor
                 observations = newObservations
-
-            epsilon = max(min_epsilon, epsilon * epsilon_decay)
             
+            epsilon = max(min_epsilon, initial_epsilon * np.exp(-epsilon_decay * episode))
+
             average_loss = episode_loss / self.env.max_steps
             self.episode_losses.append(average_loss)
             self.rewards_buffer.append(total_episode_reward[0])
@@ -215,10 +219,10 @@ class DQNTrainer:
     def save_metrics_to_csv(self):
         with open(f'{self.stats_path}/experiment_{self.experiment}-seed_{self.seed}.csv', mode='w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(['Episode', 'Reward'])
+            writer.writerow(['Episode', 'Reward', 'Loss'])
             for i in range(len(self.episode_losses)):
                 if (i + 1) % 10 == 0:
-                    writer.writerow([i, self.episode_rewards[i // 10].item()])
+                    writer.writerow([i, self.episode_rewards[i // 10].item(), self.episode_losses[i // 10]].item())
 
 def set_seed(seed):
     random.seed(seed)
@@ -244,7 +248,8 @@ if __name__ == "__main__":
     max_seed = 10
     models_path = 'models/'
     stats_path = 'stats/'
-    experiments = ['GoTo', 'Flocking', 'ObstacleAvoidance']
+    # experiments = ['GoTo', 'Flocking', 'ObstacleAvoidance']
+    experiments = ['Flocking']
     # device = 'cuda' if torch.cuda.is_available() else 'cpu'
     device = 'cpu'
     print(f'Device: {device}')
@@ -254,9 +259,9 @@ if __name__ == "__main__":
     models_output_directory.mkdir(parents=True, exist_ok=True)
     config = {
         'epsilon': 0.99,
-        'epsilon_decay' : 0.9,
+        'epsilon_decay' : 0.1,
         'min_epsilon' : 0.05,
-        'episodes' : 800
+        'episodes' : 400
     }
     for seed in range(max_seed):
         set_seed(seed)
