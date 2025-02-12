@@ -222,7 +222,7 @@ class DQNTrainer:
             writer.writerow(['Episode', 'Reward', 'Loss'])
             for i in range(len(self.episode_losses)):
                 if (i + 1) % 10 == 0:
-                    writer.writerow([i, self.episode_rewards[i // 10].item(), self.episode_losses[i // 10]].item())
+                    writer.writerow([i, self.episode_rewards[i // 10].item(), self.episode_losses[i // 10]])
 
 def set_seed(seed):
     random.seed(seed)
