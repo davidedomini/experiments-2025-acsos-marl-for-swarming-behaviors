@@ -8,3 +8,5 @@ pandas
 typer
 scikit-image
 tensorboard
+matplotlib
+seaborn
