@@ -7,7 +7,7 @@ from vmas.simulator.utils import Color
 class GoToPositionScenario(BaseScenario):
 
     def make_world(self, batch_dim: int, device: torch.device, **kwargs):    
-        self.pos_shaping_factor = kwargs.get("pos_shaping_factor", 10.0)
+        self.pos_shaping_factor = kwargs.get("pos_shaping_factor", 1.0)
         self.agent_radius = kwargs.get("agent_radius", 0.1)
         self.n_agents = kwargs.get("n_agents", 1)
         self.seed = kwargs.get("seed", 1)
@@ -81,13 +81,12 @@ class GoToPositionScenario(BaseScenario):
 
 
     def reset_world_at(self, env_index: int = None):
-        position_range = (-1, 1)
+        position_range = -torch.tensor([-1.5, 1.5])
 
         self.world.landmarks[0].set_pos(torch.tensor([-0.8, 0.8]), None)
 
-        central_random_position = ((position_range[1] - position_range[0]) * torch.rand(
-            (1, 2), device=self.world.device, dtype=torch.float32
-        ) + position_range[0]).squeeze()
+        central_random_position = position_range + torch.normal(mean=torch.tensor([-0.6, 0.6]), std=torch.tensor([0.4, 0.4]))
+
 
         all__agents_positions = self.generate_grid(central_random_position, self.n_agents, self.desired_distance)
 
@@ -120,18 +119,7 @@ class GoToPositionScenario(BaseScenario):
             agent.state.pos - agent.goal.state.pos,
             dim=-1,
         )
-        agent.on_goal = agent.distance_to_goal < agent.goal.shape.radius 
-
-        shaped_distance_to_goal = agent.distance_to_goal * self.pos_shaping_factor 
-        agent.pos_rew = agent.previous_distance_to_goal - shaped_distance_to_goal 
-        agent.previous_distance_to_goal = shaped_distance_to_goal 
-
-        reward = agent.pos_rew
-
-        if agent.on_goal:
-            reward = reward + 50
-
-        return reward 
+        return -agent.distance_to_goal #reward
 
     def observation(self, agent: Agent):
         return torch.cat(
@@ -143,6 +131,14 @@ class GoToPositionScenario(BaseScenario):
             dim=-1,
         )
 
+    def average_distance_to_goal(self):
+        return torch.mean(torch.stack([agent.distance_to_goal for agent in self.world.agents]))
+
+    def average_distance_to_obstacles(self):
+        return torch.tensor(0.0)
+
+    def obstacles_hits(self):
+        return torch.tensor(0.0)
     def done(self):
         return torch.zeros(self.world.batch_dim, device=self.world.device, dtype=torch.bool)
 

@@ -17,29 +17,36 @@ from obstacle_avoidance_scenario import ObstacleAvoidanceScenario
 from simulator import Simulator
 
 if __name__ == "__main__":
+    # 0 to 9
+    models_seed = [i for i in range(10)]
+    simulation_seed = 6967
+    # 5 to 12
+    agents = [i for i in range(5, 13)]
 
-    SEED = 6967
+    for model_seed in models_seed:
+        for agent in agents:
 
-    env = make_env(
-        ObstacleAvoidanceScenario(),
-        scenario_name="test_gcn_vmas",
-        num_envs=1,
-        device="cpu",
-        continuous_actions=False,
-        dict_spaces=True,
-        wrapper=None,
-        seed=SEED,
-        n_agents=5,
-        max_steps= 100
-    )
+            env = make_env(
+                ObstacleAvoidanceScenario(),
+                scenario_name="test_gcn_vmas",
+                num_envs=1,
+                device="cpu",
+                continuous_actions=False,
+                dict_spaces=True,
+                wrapper=None,
+                seed=simulation_seed,
+                n_agents=agent,
+                max_steps= 50,
+                random=True,
+            )
 
-    models_dir = "models/"
+            models_dir = "models/"
 
-    model = GCN(input_dim=7, hidden_dim=32, output_dim=9)
-    model.load_state_dict(torch.load(models_dir + 'obstacle_avoidance_model_5.pth'))
+            model = GCN(input_dim=7, hidden_dim=32, output_dim=9)
+            model.load_state_dict(torch.load(models_dir + f'experiment_ObstacleAvoidance-seed_{model_seed}.pth'))
 
-    model.eval()
-    print("Obstacle Avoidance model loaded successfully!")
+            model.eval()
+            print("Obstacle Avoidance model loaded successfully!")
 
-    simulator = Simulator(env, model)
-    simulator.run_simulation()
+            simulator = Simulator(env, model, 8, 'obstacle_avoidance', simulation_seed, output_dir=f'test_stats/obstacle_avoidance/seed_{model_seed}/agents_{agent}')
+            simulator.run_simulation()

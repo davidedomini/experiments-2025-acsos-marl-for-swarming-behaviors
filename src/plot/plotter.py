@@ -6,10 +6,11 @@ import seaborn as sns
 from pathlib import Path
 import matplotlib.pyplot as plt
 
-def load_data_from_csv(path, experiemnt):
-    files = glob.glob(f'{path}/experiment_{experiemnt}-seed*.csv')
-    print(f'For experiment {experiemnt} found {len(files)} files')
+def load_data_from_csv(path, experiment):
+    files = glob.glob(f'{path}/experiment_{experiment}-seed*.csv')
+    print(f'For experiment {experiment} found {len(files)} files')
     dataframes = []
+    print(files)
     for file in files:
         df = pd.read_csv(file)
         dataframes.append(df)
@@ -47,7 +48,7 @@ if __name__ == '__main__':
     
     stats_path  = 'stats'
     charts_path = 'charts'
-    experiments = ['GoTo', 'Flocking', 'ObstacleAvoidance']
+    experiments = ['GoTo', 'ObstacleAvoidance']
 
     Path(charts_path).mkdir(parents=True, exist_ok=True)
 

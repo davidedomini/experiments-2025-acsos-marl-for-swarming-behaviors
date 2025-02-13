@@ -29,14 +29,14 @@ if __name__ == "__main__":
         dict_spaces=True,
         wrapper=None,
         seed=None,
-        n_agents=9,
+        n_agents=1,
         max_steps= 100
     )
 
     models_dir = "models/"
 
-    model = GCN(input_dim=7, hidden_dim=32, output_dim=9)
-    model.load_state_dict(torch.load(models_dir + 'flocking_model_9.pth'))
+    model = GCN(input_dim=7, hidden_dim=8, output_dim=9)
+    model.load_state_dict(torch.load(models_dir + 'experiment_Flocking-seed_5.pth'))
 
     model.eval()
     print("Flocking model loaded successfully!")

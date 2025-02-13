@@ -64,10 +64,16 @@ class FlockingScenario(BaseScenario):
         num_rows = math.ceil(num_points / num_cols)
 
         grid = []
+        # random gaussian
+
+
         for i in range(num_rows):
             for j in range(num_cols):
-                x = x_center + (j - (num_cols - 1) / 2) * distance
-                y = y_center + (i - (num_rows - 1) / 2) * distance
+                # consider addng this as parameter (the std)
+                x_dev = torch.normal(mean=torch.tensor([0.0]), std=torch.tensor([0.1]))
+                y_dev = torch.normal(mean=torch.tensor([0.0]), std=torch.tensor([0.1]))
+                x = x_center + (j - (num_cols - 1) / 2) * distance # + x_dev
+                y = y_center + (i - (num_rows - 1) / 2) * distance # + y_dev
                 grid.append([x, y])
                 if len(grid) >= num_points:
                     break
@@ -78,13 +84,11 @@ class FlockingScenario(BaseScenario):
 
 
     def reset_world_at(self, env_index: int = None):
-        position_range = (-1, 1)
+        position_range = torch.tensor([-1, 1])
 
         self.world.landmarks[0].set_pos(torch.tensor([-0.8, 0.8]), None)
 
-        central_random_position = ((position_range[1] - position_range[0]) * torch.rand(
-            (1, 2), device=self.world.device, dtype=torch.float32
-        ) + position_range[0]).squeeze()
+        central_random_position = position_range + torch.normal(mean=torch.tensor([-0.6, 0.6]), std=torch.tensor([0.4, 0.4]))
 
         all__agents_positions = self.generate_grid(central_random_position, self.n_agents, self.desired_distance)
 
@@ -180,6 +184,17 @@ class FlockingScenario(BaseScenario):
             ],
             dim=-1,
         )
+
+    def distance_to_goal_all(self):
+        return torch.stack(
+            [
+                torch.linalg.vector_norm(agent.state.pos - agent.goal.state.pos, dim=-1)
+                for agent in self.world.agents
+            ],
+            dim=1,
+        )
+
+
 
     def done(self):
         return torch.zeros(self.world.batch_dim, device=self.world.device, dtype=torch.bool)

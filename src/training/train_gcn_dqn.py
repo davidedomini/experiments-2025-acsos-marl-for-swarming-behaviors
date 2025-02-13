@@ -36,6 +36,7 @@ class GraphReplayBuffer:
         self.position = (self.position + 1) % self.capacity
 
     def sample(self, batch_size):
+        #sample = [self.buffer[i] for i in range(batch_size)]
         sample = random.sample(self.buffer, batch_size)
         observations = [s[0] for s in sample]
         actions = [s[1] for s in sample]
@@ -50,19 +51,19 @@ class GCN(torch.nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
         super(GCN, self).__init__()
         self.conv1 = GATConv(input_dim, hidden_dim, add_self_loops=False, bias=True)
-        self.conv2 = GATConv(hidden_dim, hidden_dim, add_self_loops=False, bias=True)
-        self.conv3 = GATConv(hidden_dim, hidden_dim, add_self_loops=False, bias=True)
+        #self.conv2 = GATConv(hidden_dim, hidden_dim, add_self_loops=False, bias=True)
+        #self.conv3 = GATConv(hidden_dim, hidden_dim, add_self_loops=False, bias=True)
         self.lin1 = torch.nn.Linear(hidden_dim, hidden_dim)
         self.lin2 = torch.nn.Linear(hidden_dim, output_dim)
 
     def forward(self, data):
         x, edge_index = data.x, data.edge_index
         x = self.conv1(x, edge_index)
-        x = torch.relu(x)
-        x = self.conv2(x, edge_index)
-        x = torch.relu(x)
-        x = self.conv3(x, edge_index)
-        x = torch.relu(x)
+        x = torch.tanh(x)
+        #x = self.conv2(x, edge_index)
+        #x = torch.relu(x)
+        #x = self.conv3(x, edge_index)
+        #x = torch.relu(x)
         x = self.lin1(x)
         x = torch.relu(x)
         x = self.lin2(x)
@@ -81,8 +82,8 @@ class DQNTrainer:
         self.target_model = GCN(input_dim=self.n_input, hidden_dim=32, output_dim=self.n_output)
         self.target_model.load_state_dict(self.model.state_dict())
         # self.optimizer = torch.optim.RMSprop(self.model.parameters(), lr=0.0001)
-        self.optimizer = torch.optim.Adam(self.model.parameters(), 0.0001)
-        self.replay_buffer = GraphReplayBuffer(6000)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), 0.001)
+        self.replay_buffer = GraphReplayBuffer(1000000)
         self.writer = tensorboard.SummaryWriter()
         self.episode_rewards = []
         self.episode_losses = []
@@ -110,22 +111,28 @@ class DQNTrainer:
     
     def train_step_dqn(self, batch_size, model, target_model, ticks, gamma=0.99, update_target_every=10):
         if len(self.replay_buffer) < batch_size:
+            print("Not enough samples in the replay buffer")
             return 0
-        model.train()
         self.optimizer.zero_grad()
         obs, actions, rewards, nextObs = self.replay_buffer.sample(batch_size)
-
+        # normalize the rewards
         values = model(obs).gather(1, actions.unsqueeze(1))
         nextValues = target_model(nextObs).max(dim=1)[0].detach()
         targetValues = rewards + (gamma * nextValues)
         loss = nn.MSELoss()(values, targetValues.unsqueeze(1))
-        self.optimizer.zero_grad()
+
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
         self.optimizer.step()
-            
+
+        #for name, param in model.named_parameters():
+        #    self.writer.add_histogram(name, param, ticks)
+
         if ticks % update_target_every == 0:
+            print("Updating target model")
             target_model.load_state_dict(model.state_dict())
+            # plots weights in tensorboard
+
         self.writer.add_scalar('Loss', loss.item(), ticks)
         return loss.item()
 
@@ -152,8 +159,7 @@ class DQNTrainer:
                 #     )
                 ticks += 1
                 graph_data = self.create_graph_from_observations(observations)
-                self.model.eval()
-                logits = self.model(graph_data)
+                logits = self.model(graph_data).detach()
 
                 if random.random() < epsilon:
                     actions = torch.tensor([random.randint(0, 8) for _ in range(len(self.env.agents))])
@@ -166,9 +172,9 @@ class DQNTrainer:
                 self.replay_buffer.push(graph_data, actions, rewards_tensor, self.create_graph_from_observations(newObservations))
                 
                 self.writer.add_scalar('Reward', rewards_tensor.sum().item(), ticks)
-                loss = self.train_step_dqn(32, self.model, self.target_model, ticks, update_target_every=50)
+                loss = self.train_step_dqn(32, self.model, self.target_model, ticks, update_target_every=200)
                 episode_loss += loss
-                total_episode_reward += rewards_tensor
+                total_episode_reward += (rewards_tensor / len(self.env.agents))
                 observations = newObservations
             
             epsilon = max(min_epsilon, initial_epsilon * np.exp(-epsilon_decay * episode))
@@ -249,7 +255,7 @@ if __name__ == "__main__":
     models_path = 'models/'
     stats_path = 'stats/'
     # experiments = ['GoTo', 'Flocking', 'ObstacleAvoidance']
-    experiments = ['Flocking']
+    experiments = ['ObstacleAvoidance', 'GoTo',]
     # device = 'cuda' if torch.cuda.is_available() else 'cpu'
     device = 'cpu'
     print(f'Device: {device}')
@@ -259,9 +265,9 @@ if __name__ == "__main__":
     models_output_directory.mkdir(parents=True, exist_ok=True)
     config = {
         'epsilon': 0.99,
-        'epsilon_decay' : 0.1,
+        'epsilon_decay' : 0.01,
         'min_epsilon' : 0.05,
-        'episodes' : 400
+        'episodes' : 1000
     }
     for seed in range(max_seed):
         set_seed(seed)
