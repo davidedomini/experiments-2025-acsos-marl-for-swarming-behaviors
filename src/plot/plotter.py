@@ -24,9 +24,9 @@ def compute_mean_variance(dfs):
 
 def plot(mean, variance, experiment, metrics, charts_dir):
     colors = sns.color_palette("viridis", n_colors=1)
-    plt.figure(figsize=(10, 6))
-    
+
     for metric in metrics:
+        plt.figure(figsize=(5, 4))
         sns.lineplot(
             data = mean,
             x = 'Episode',
@@ -43,6 +43,8 @@ def plot(mean, variance, experiment, metrics, charts_dir):
         plt.tight_layout()
         plt.savefig(f'{charts_dir}/experiment-{experiment}_metric-{metric}.pdf', dpi=300)
         plt.close()
+        plt.figure(figsize=(4, 3))
+
 
 if __name__ == '__main__':
     

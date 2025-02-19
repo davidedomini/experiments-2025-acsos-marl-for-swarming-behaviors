@@ -18,7 +18,7 @@ from simulator import Simulator
 
 if __name__ == "__main__":
     # 0 to 9
-    models_seed = [i for i in range(10)]
+    models_seed = [i for i in range(0, 10)]
     simulation_seed = 6967
     # 5 to 12
     agents = [i for i in range(5, 13)]
@@ -36,7 +36,7 @@ if __name__ == "__main__":
                 wrapper=None,
                 seed=simulation_seed,
                 n_agents=agent,
-                max_steps= 50,
+                max_steps= 100,
                 random=True,
             )
 
@@ -46,7 +46,7 @@ if __name__ == "__main__":
             model.load_state_dict(torch.load(models_dir + f'experiment_ObstacleAvoidance-seed_{model_seed}.pth'))
 
             model.eval()
-            print("Obstacle Avoidance model loaded successfully!")
+            print(f"Obstacle Avoidance model loaded successfully!, seed {model_seed}")
 
-            simulator = Simulator(env, model, 8, 'obstacle_avoidance', simulation_seed, output_dir=f'test_stats/obstacle_avoidance/seed_{model_seed}/agents_{agent}')
+            simulator = Simulator(env, model, 8, 'obstacle_avoidance', simulation_seed, output_dir=f'test_stats/obstacle_avoidance/seed_{model_seed}/agents_{agent}', render=False)
             simulator.run_simulation()

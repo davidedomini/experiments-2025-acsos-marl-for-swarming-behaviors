@@ -255,7 +255,7 @@ if __name__ == "__main__":
     models_path = 'models/'
     stats_path = 'stats/'
     # experiments = ['GoTo', 'Flocking', 'ObstacleAvoidance']
-    experiments = ['ObstacleAvoidance', 'GoTo',]
+    experiments = ['ObstacleAvoidance']#, 'GoTo',]
     # device = 'cuda' if torch.cuda.is_available() else 'cpu'
     device = 'cpu'
     print(f'Device: {device}')

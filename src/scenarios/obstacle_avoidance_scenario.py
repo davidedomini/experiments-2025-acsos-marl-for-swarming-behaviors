@@ -21,7 +21,9 @@ class ObstacleAvoidanceScenario(BaseScenario):
         self.collective_reward = 0
         self.agent_collision_reward = -1
         self.desired_distance = 0.15
-        self.min_collision_distance = 0.005
+        self.min_collision_distance_reward = 1
+        self.min_collision_distance_count = 0.2
+
         world = World(batch_dim, device)
 
         goal = Landmark(
@@ -131,7 +133,7 @@ class ObstacleAvoidanceScenario(BaseScenario):
             ).pow(2).mean(-1) * self.dist_shaping_factor
 
     def reward(self, agent):
-        return self.distance_to_goal_reward(agent) + self.obstacle_avoidance_reward(agent)
+        return self.distance_to_goal_reward(agent) + 2.5 * self.obstacle_avoidance_reward(agent)
     
     def distance_to_goal_reward(self, agent: Agent):
         agent.distance_to_goal = torch.linalg.vector_norm(
@@ -144,8 +146,8 @@ class ObstacleAvoidanceScenario(BaseScenario):
     def obstacle_avoidance_reward(self, agent: Agent):
 
         for i in range (1, self.n_obstacles + 1):
-            if self.world.get_distance(agent, self.world.landmarks[i]) <= self.min_collision_distance :
-                return -self.world.get_distance(agent, self.world.landmarks[i])
+            if self.world.get_distance(agent, self.world.landmarks[i]) <= self.min_collision_distance_reward:
+                return -(self.min_collision_distance_reward - self.world.get_distance(agent, self.world.landmarks[i]))
 
         return 0
 
@@ -166,7 +168,7 @@ class ObstacleAvoidanceScenario(BaseScenario):
         return torch.mean(torch.stack([self.world.get_distance(agent, self.world.landmarks[1]) for agent in self.world.agents]))
 
     def obstacles_hits(self):
-        hits = torch.stack([self.world.get_distance(agent, self.world.landmarks[1]) <= self.min_collision_distance for agent in self.world.agents])
+        hits = torch.stack([self.world.get_distance(agent, self.world.landmarks[1]) <= self.min_collision_distance_count for agent in self.world.agents])
         count_all = torch.sum(hits)
         return count_all
     def done(self):
