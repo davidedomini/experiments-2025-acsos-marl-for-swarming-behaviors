@@ -3,7 +3,6 @@
 This repository contains the implementation of a `Multi-Agent System` designed to train a swarm of autonomous agents and enable them to learn various swarming behaviors.
 
 Training is accomplished through a custom implementation of the `Deep Q-Network` (DQN) algorithm and the design of a `Graph Neural Network` (GNN).
-[src](src)
 
 ## Requirements 
 
