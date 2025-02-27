@@ -13,8 +13,8 @@ services:
         chmod 777 /experiment/models
         mkdir -p /experiment/stats
         chmod 777 /experiment/stats
-        mkdir -p /experiment/test-stats
-        chmod 777 /experiment/test-stats
+        mkdir -p /experiment/test_stats
+        chmod 777 /experiment/test_stats
 
   learning:
     depends_on:
