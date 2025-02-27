@@ -1,0 +1,52 @@
+version: '3'
+
+services:
+  
+  prepare:
+    image: alpine:3.19.1
+    volumes:
+      - .:/experiment:rw
+    entrypoint: /bin/sh -c
+    command:
+      - |
+        mkdir -p /experiment/models
+        chmod 777 /experiment/models
+        mkdir -p /experiment/stats
+        chmod 777 /experiment/stats
+        mkdir -p /experiment/test-stats
+        chmod 777 /experiment/test-stats
+
+  learning:
+    depends_on:
+      prepare:
+        condition: service_completed_successfully
+    build:
+      dockerfile: ./docker/learning/Dockerfile
+      context: .
+    volumes:
+     - ./stats:/experiment/stats
+     - ./models:/experiment/models
+
+  test-goto-position:
+    depends_on:
+      learning:
+        condition: service_completed_successfully
+    build:
+      dockerfile: ./docker/test-goto/Dockerfile
+      context: .
+    volumes:
+     - ./test-stats:/experiment/test-stats
+     - ./models:/experiment/models
+
+  test-obstacle-avoidance:
+    depends_on:
+      learning:
+        condition: service_completed_successfully
+    build:
+      dockerfile: ./docker/test-obstacle-avoidance/Dockerfile
+      context: .
+    volumes:
+     - ./test-stats:/experiment/test-stats
+     - ./models:/experiment/models
+
+  
