@@ -35,7 +35,7 @@ services:
       dockerfile: ./docker/test-goto/Dockerfile
       context: .
     volumes:
-     - ./test-stats:/experiment/test-stats
+     - ./test_stats:/experiment/test_stats
      - ./models:/experiment/models
 
   test-obstacle-avoidance:
@@ -46,7 +46,7 @@ services:
       dockerfile: ./docker/test-obstacle-avoidance/Dockerfile
       context: .
     volumes:
-     - ./test-stats:/experiment/test-stats
+     - ./test_stats:/experiment/test_stats
      - ./models:/experiment/models
 
   
