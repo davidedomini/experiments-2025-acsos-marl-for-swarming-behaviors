@@ -44,3 +44,7 @@ This repository contains a `docker-compose.yml` file that creates four services:
 * Since learning may require a huge amount of time depending on which machine experiments are run, we provided already trained models to run only the tests, in this case:
   * `docker compose run --no-deps test-goto-position` or
   * `docker compose run --no-deps test-obstacle-avoidance`
+* To generate charts:
+  * `pip install -r requirements.txt`
+  * `python3 src/plot/plotter.py`
+  * `python3 src/plot/plotter_test.py` 
