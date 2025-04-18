@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/davidedomini/experiments-2025-acsos-marl-for-swarming-behaviors/compare/1.1.0...1.1.1) (2025-04-18)
+
+### Bug Fixes
+
+* **docker-compose:** fix depends on ([bdaefbc](https://github.com/davidedomini/experiments-2025-acsos-marl-for-swarming-behaviors/commit/bdaefbcb0cb23d38c28791c2ea9457c9da1e5534))
+* fix docker compose ([5e5410c](https://github.com/davidedomini/experiments-2025-acsos-marl-for-swarming-behaviors/commit/5e5410ce0d7f90d7640cd7367d95c793a75ed1af))
+
 ## [1.1.0](https://github.com/davidedomini/experiments-2025-coordination-marl-for-swarming-behaviors/compare/v1.0.1...1.1.0) (2025-04-18)
 
 ### Features
