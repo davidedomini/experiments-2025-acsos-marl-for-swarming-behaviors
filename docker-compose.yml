@@ -1,32 +1,14 @@
 version: '3'
 
 services:
-  
-  prepare:
-    image: alpine:3.19.1
-    volumes:
-      - .:/experiment:rw
-    entrypoint: /bin/sh -c
-    command:
-      - |
-        mkdir -p /experiment/models
-        chmod 777 /experiment/models
-        mkdir -p /experiment/stats
-        chmod 777 /experiment/stats
-        mkdir -p /experiment/test_stats
-        chmod 777 /experiment/test_stats
 
   learning:
-    depends_on:
-      - prepare
     image: davidedomini99/acsos-2025-gnn-swarming-learning:${version-latest}
     build:
       dockerfile: ./docker/learning/Dockerfile
       context: .
     volumes:
      - davide.domini-volume:/experiment 
-     - ./stats:/experiment/stats
-     - ./models:/experiment/models
 
   test-goto-position:
     depends_on:
@@ -37,8 +19,6 @@ services:
       context: .
     volumes:
      - davide.domini-volume:/experiment 
-     - ./test_stats:/experiment/test_stats
-     - ./models:/experiment/models
 
   test-obstacle-avoidance:
     depends_on:
@@ -49,8 +29,6 @@ services:
       context: .
     volumes:
      - davide.domini-volume:/experiment 
-     - ./test_stats:/experiment/test_stats
-     - ./models:/experiment/models
 
 volumes:
   davide.domini-volume:
