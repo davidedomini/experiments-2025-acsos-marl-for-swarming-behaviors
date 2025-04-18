@@ -254,6 +254,7 @@ if __name__ == "__main__":
     max_seed = 10
     models_path = 'models/'
     stats_path = 'stats/'
+    test_stats_path = 'test_stats/'
     agents = 10
     # experiments = ['GoTo', 'Flocking', 'ObstacleAvoidance']
     experiments = ['ObstacleAvoidance' 'GoTo']
@@ -262,6 +263,8 @@ if __name__ == "__main__":
     print(f'Device: {device}')
     data_output_directory = Path(stats_path)
     data_output_directory.mkdir(parents=True, exist_ok=True)
+    test_data_output_directory = Path(test_stats_path)
+    test_data_output_directory.mkdir(parents=True, exist_ok=True)
     models_output_directory = Path(models_path)
     models_output_directory.mkdir(parents=True, exist_ok=True)
     config = {
