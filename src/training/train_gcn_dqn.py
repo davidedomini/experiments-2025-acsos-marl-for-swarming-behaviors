@@ -254,8 +254,9 @@ if __name__ == "__main__":
     max_seed = 10
     models_path = 'models/'
     stats_path = 'stats/'
+    agents = 10
     # experiments = ['GoTo', 'Flocking', 'ObstacleAvoidance']
-    experiments = ['ObstacleAvoidance']#, 'GoTo',]
+    experiments = ['ObstacleAvoidance' 'GoTo']
     # device = 'cuda' if torch.cuda.is_available() else 'cpu'
     device = 'cpu'
     print(f'Device: {device}')
@@ -281,7 +282,7 @@ if __name__ == "__main__":
                 wrapper=None,
                 max_steps=100,
                 dict_spaces=True,
-                n_agents=5,
+                n_agents=agents,
                 seed=seed
             )
             trainer = DQNTrainer(env, seed, models_path, stats_path, experiment)

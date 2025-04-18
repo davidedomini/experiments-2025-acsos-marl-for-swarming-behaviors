@@ -21,7 +21,7 @@ if __name__ == "__main__":
     models_seed = [i for i in range(0, 10)]
     simulation_seed = 6967
     # 5 to 12
-    agents = [i for i in range(5, 13)]
+    agents = [i for i in range(10, 30)]
 
     for model_seed in models_seed:
         for agent in agents:

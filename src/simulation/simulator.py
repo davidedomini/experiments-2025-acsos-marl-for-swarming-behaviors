@@ -16,7 +16,7 @@ def create_graph_from_observations(self, observations, num_agents):
     for i in range(num_agents):
         # take the 3 nearest agents
         distance_to_i = torch.linalg.norm(node_features[:, :2] - node_features[i, :2], dim=1)
-        _, nearest_agents = torch.topk(distance_to_i, 5, largest=False)
+        _, nearest_agents = torch.topk(distance_to_i, 10, largest=False)
         for agent in nearest_agents:
             edge_index.append([i, agent.item()])
             edge_index.append([agent.item(), i])
