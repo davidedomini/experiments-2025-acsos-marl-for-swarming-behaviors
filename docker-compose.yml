@@ -18,8 +18,8 @@ services:
 
   learning:
     depends_on:
-      prepare:
-        condition: service_completed_successfully
+      - condition: service_completed_successfully
+        service: prepare
     image: davidedomini99/acsos-2025-gnn-swarming-learning:${version-latest}
     build:
       dockerfile: ./docker/learning/Dockerfile
@@ -31,8 +31,8 @@ services:
 
   test-goto-position:
     depends_on:
-      learning:
-        condition: service_completed_successfully
+      - condition: service_completed_successfully
+        service: learning
     image: davidedomini99/acsos-2025-gnn-swarming-test-goto:${version-latest}
     build:
       dockerfile: ./docker/test-goto/Dockerfile
@@ -44,8 +44,8 @@ services:
 
   test-obstacle-avoidance:
     depends_on:
-      learning:
-        condition: service_completed_successfully
+      - condition: service_completed_successfully
+        service: learning
     image: davidedomini99/acsos-2025-gnn-swarming-test-avoidance:${version-latest}
     build:
       dockerfile: ./docker/test-obstacle-avoidance/Dockerfile
