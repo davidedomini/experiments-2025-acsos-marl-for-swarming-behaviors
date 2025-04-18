@@ -1,3 +1,13 @@
+## [1.2.0](https://github.com/davidedomini/experiments-2025-acsos-marl-for-swarming-behaviors/compare/1.1.1...1.2.0) (2025-04-18)
+
+### Features
+
+* add test stats directory creation from python ([6de4dda](https://github.com/davidedomini/experiments-2025-acsos-marl-for-swarming-behaviors/commit/6de4dda8e8d4e5a12d255b1db5c515d19fa09325))
+
+### Bug Fixes
+
+* remove prepare service ([cfecd24](https://github.com/davidedomini/experiments-2025-acsos-marl-for-swarming-behaviors/commit/cfecd243629e303e470fd8117f0c4e77400ce5dd))
+
 ## [1.1.1](https://github.com/davidedomini/experiments-2025-acsos-marl-for-swarming-behaviors/compare/1.1.0...1.1.1) (2025-04-18)
 
 ### Bug Fixes
