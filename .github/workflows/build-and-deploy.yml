@@ -10,12 +10,6 @@ jobs:
     concurrency:
       # Only one release job at a time per branch, as only master releases.
       group: release-${{ github.event.number || github.ref }}
-    if: >-
-      !github.event.repository.fork
-      && (
-        github.event_name != 'pull_request'
-        || github.event.pull_request.head.repo.full_name == github.repository
-      )
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
