@@ -20,10 +20,12 @@ services:
     depends_on:
       prepare:
         condition: service_completed_successfully
+    image: davidedomini99/acsos-2025-gnn-swarming-learning:${version-latest}
     build:
       dockerfile: ./docker/learning/Dockerfile
       context: .
     volumes:
+     - davide.domini-volume:/experiment 
      - ./stats:/experiment/stats
      - ./models:/experiment/models
 
@@ -31,10 +33,12 @@ services:
     depends_on:
       learning:
         condition: service_completed_successfully
+    image: davidedomini99/acsos-2025-gnn-swarming-test-goto:${version-latest}
     build:
       dockerfile: ./docker/test-goto/Dockerfile
       context: .
     volumes:
+     - davide.domini-volume:/experiment 
      - ./test_stats:/experiment/test_stats
      - ./models:/experiment/models
 
@@ -42,11 +46,15 @@ services:
     depends_on:
       learning:
         condition: service_completed_successfully
+    image: davidedomini99/acsos-2025-gnn-swarming-test-avoidance:${version-latest}
     build:
       dockerfile: ./docker/test-obstacle-avoidance/Dockerfile
       context: .
     volumes:
+     - davide.domini-volume:/experiment 
      - ./test_stats:/experiment/test_stats
      - ./models:/experiment/models
 
-  
+volumes:
+  davide.domini-volume:
+    external: true
