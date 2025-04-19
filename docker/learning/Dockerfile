@@ -6,4 +6,4 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 COPY . .
 ENV OWNER=1000:1000
-CMD python3 src/training/train_gcn_dqn.py
+CMD ls >> debug.txt && python3 src/training/train_gcn_dqn.py
