@@ -5,4 +5,4 @@ WORKDIR /experiment
 COPY requirements.txt /experiment
 RUN pip install -r requirements.txt
 COPY . /experiment
-CMD ls tests && python3 src/training/train_gcn_dqn.py
+CMD python3 src/training/train_gcn_dqn.py
