@@ -1,3 +1,9 @@
+## [1.2.5](https://github.com/davidedomini/experiments-2025-acsos-marl-for-swarming-behaviors/compare/1.2.4...1.2.5) (2025-04-19)
+
+### Bug Fixes
+
+* create data folder for exported data ([71bdc6e](https://github.com/davidedomini/experiments-2025-acsos-marl-for-swarming-behaviors/commit/71bdc6ef343c2f0df28c509545c709cc4501fb03))
+
 ## [1.2.4](https://github.com/davidedomini/experiments-2025-acsos-marl-for-swarming-behaviors/compare/1.2.3...1.2.4) (2025-04-19)
 
 ### Bug Fixes
