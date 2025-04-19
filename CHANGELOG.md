@@ -1,3 +1,15 @@
+## [1.2.3](https://github.com/davidedomini/experiments-2025-acsos-marl-for-swarming-behaviors/compare/1.2.2...1.2.3) (2025-04-19)
+
+### Bug Fixes
+
+* fix [@cric96](https://github.com/cric96) forgot a commaaaaaaaaaaaaaaaaa ([37759a0](https://github.com/davidedomini/experiments-2025-acsos-marl-for-swarming-behaviors/commit/37759a072c452ad0b43e1e487b6745d6ec0b12ed))
+* fix copying paths in dockerfiles ([81e9438](https://github.com/davidedomini/experiments-2025-acsos-marl-for-swarming-behaviors/commit/81e9438f29cd2eb7290199b79bcaee5d9f46509d))
+* fix copying paths in dockerfiles ([b8d8442](https://github.com/davidedomini/experiments-2025-acsos-marl-for-swarming-behaviors/commit/b8d84425b7d512bc494dc3e98ca0a7e37bfdc23e))
+
+### General maintenance
+
+* add docker ignore ([1808d01](https://github.com/davidedomini/experiments-2025-acsos-marl-for-swarming-behaviors/commit/1808d01322263c68b076d1fd01aa981822b3b6e2))
+
 ## [1.2.2](https://github.com/davidedomini/experiments-2025-acsos-marl-for-swarming-behaviors/compare/1.2.1...1.2.2) (2025-04-19)
 
 ### Bug Fixes
