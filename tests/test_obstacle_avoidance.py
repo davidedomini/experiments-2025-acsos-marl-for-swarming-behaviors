@@ -40,7 +40,7 @@ if __name__ == "__main__":
                 random=True,
             )
 
-            models_dir = "models/"
+            models_dir = "data/models/"
 
             model = GCN(input_dim=7, hidden_dim=32, output_dim=9)
             model.load_state_dict(torch.load(models_dir + f'experiment_ObstacleAvoidance-seed_{model_seed}.pth'))
@@ -48,5 +48,5 @@ if __name__ == "__main__":
             model.eval()
             print(f"Obstacle Avoidance model loaded successfully!, seed {model_seed}")
 
-            simulator = Simulator(env, model, 8, 'obstacle_avoidance', simulation_seed, output_dir=f'test_stats/obstacle_avoidance/seed_{model_seed}/agents_{agent}', render=False)
+            simulator = Simulator(env, model, 8, 'obstacle_avoidance', simulation_seed, output_dir=f'data/test_stats/obstacle_avoidance/seed_{model_seed}/agents_{agent}', render=False)
             simulator.run_simulation()

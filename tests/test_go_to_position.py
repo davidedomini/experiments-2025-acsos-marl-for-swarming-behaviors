@@ -40,7 +40,7 @@ if __name__ == "__main__":
                 random=True,
             )
 
-            models_dir = "models/"
+            models_dir = "data/models/"
 
             model = GCN(input_dim=7, hidden_dim=32, output_dim=9)
             model.load_state_dict(torch.load(models_dir + f'experiment_GoTo-seed_{model_seed}.pth'))
@@ -49,5 +49,5 @@ if __name__ == "__main__":
             print("Go to model loaded successfully!")
 
             simulator = Simulator(env, model, 8, 'go_to', simulation_seed,
-                                  output_dir=f'test_stats/go_to/seed_{model_seed}/agents_{agent}')
+                                  output_dir=f'data/test_stats/go_to/seed_{model_seed}/agents_{agent}')
             simulator.run_simulation()

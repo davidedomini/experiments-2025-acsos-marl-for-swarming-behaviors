@@ -252,9 +252,9 @@ def get_scenario(experiment_name):
 if __name__ == "__main__":
 
     max_seed = 10
-    models_path = 'models/'
-    stats_path = 'stats/'
-    test_stats_path = 'test_stats/'
+    models_path = 'data/models/'
+    stats_path = 'data/stats/'
+    test_stats_path = 'data/test_stats/'
     agents = 10
     # experiments = ['GoTo', 'Flocking', 'ObstacleAvoidance']
     experiments = ['ObstacleAvoidance', 'GoTo']
