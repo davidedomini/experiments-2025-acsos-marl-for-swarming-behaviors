@@ -1,3 +1,9 @@
+## [1.2.4](https://github.com/davidedomini/experiments-2025-acsos-marl-for-swarming-behaviors/compare/1.2.3...1.2.4) (2025-04-19)
+
+### Bug Fixes
+
+* remove ls ([6dd6a25](https://github.com/davidedomini/experiments-2025-acsos-marl-for-swarming-behaviors/commit/6dd6a253af55e58067af84d3035743cf7a1cfe0f))
+
 ## [1.2.3](https://github.com/davidedomini/experiments-2025-acsos-marl-for-swarming-behaviors/compare/1.2.2...1.2.3) (2025-04-19)
 
 ### Bug Fixes
