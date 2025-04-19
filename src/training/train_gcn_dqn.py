@@ -246,7 +246,7 @@ def get_scenario(experiment_name):
     elif experiment_name == 'ObstacleAvoidance':
         return ObstacleAvoidanceScenario()
     else:
-        raise Exception('Scenario not supported! Please check :)')
+        raise Exception(f'Scenario {experiment_name} not supported! Please check :)')
 
 
 if __name__ == "__main__":
@@ -257,7 +257,7 @@ if __name__ == "__main__":
     test_stats_path = 'test_stats/'
     agents = 10
     # experiments = ['GoTo', 'Flocking', 'ObstacleAvoidance']
-    experiments = ['ObstacleAvoidance' 'GoTo']
+    experiments = ['ObstacleAvoidance', 'GoTo']
     # device = 'cuda' if torch.cuda.is_available() else 'cpu'
     device = 'cpu'
     print(f'Device: {device}')
