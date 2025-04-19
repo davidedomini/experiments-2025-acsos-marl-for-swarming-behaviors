@@ -10,25 +10,25 @@ services:
     volumes:
      - davide.domini-volume:/data 
 
-  test-goto-position:
-    depends_on:
-      - learning
-    image: davidedomini99/acsos-2025-gnn-swarming-test-goto:${version-latest}
-    build:
-      dockerfile: ./docker/test-goto/Dockerfile
-      context: .
-    volumes:
-     - davide.domini-volume:/data 
+  # test-goto-position:
+  #   depends_on:
+  #     - learning
+  #   image: davidedomini99/acsos-2025-gnn-swarming-test-goto:${version-latest}
+  #   build:
+  #     dockerfile: ./docker/test-goto/Dockerfile
+  #     context: .
+  #   volumes:
+  #    - davide.domini-volume:/data 
 
-  test-obstacle-avoidance:
-    depends_on:
-      - learning
-    image: davidedomini99/acsos-2025-gnn-swarming-test-avoidance:${version-latest}
-    build:
-      dockerfile: ./docker/test-obstacle-avoidance/Dockerfile
-      context: .
-    volumes:
-     - davide.domini-volume:/data 
+  # test-obstacle-avoidance:
+  #   depends_on:
+  #     - learning
+  #   image: davidedomini99/acsos-2025-gnn-swarming-test-avoidance:${version-latest}
+  #   build:
+  #     dockerfile: ./docker/test-obstacle-avoidance/Dockerfile
+  #     context: .
+  #   volumes:
+  #    - davide.domini-volume:/data 
 
 volumes:
   davide.domini-volume:
