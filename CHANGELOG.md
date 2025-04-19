@@ -1,3 +1,13 @@
+## [1.2.1](https://github.com/davidedomini/experiments-2025-acsos-marl-for-swarming-behaviors/compare/1.2.0...1.2.1) (2025-04-19)
+
+### Bug Fixes
+
+* add debug files ([55d326c](https://github.com/davidedomini/experiments-2025-acsos-marl-for-swarming-behaviors/commit/55d326cadec26490383c13f1f60b5ab9a66a6d81))
+
+### General maintenance
+
+* add docker ignore ([286ad1c](https://github.com/davidedomini/experiments-2025-acsos-marl-for-swarming-behaviors/commit/286ad1c206f343aa24d9309f81ffd1775e26f955))
+
 ## [1.2.0](https://github.com/davidedomini/experiments-2025-acsos-marl-for-swarming-behaviors/compare/1.1.1...1.2.0) (2025-04-18)
 
 ### Features
