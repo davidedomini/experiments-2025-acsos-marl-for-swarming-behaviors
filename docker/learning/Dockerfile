@@ -4,7 +4,5 @@ VOLUME "davide.domini-volume"
 WORKDIR /experiment
 COPY requirements.txt /experiment
 RUN pip install -r requirements.txt
-COPY src/ /experiment
-COPY tests/ /experiment
-ENV OWNER=1000:1000
-CMD python3 src/training/train_gcn_dqn.py
+COPY . /experiment
+CMD ls tests && python3 src/training/train_gcn_dqn.py
